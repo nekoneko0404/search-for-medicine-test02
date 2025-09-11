@@ -249,8 +249,8 @@
             reader.onload = function(e) {
                 const data = new Uint8Array(e.target.result);
                 processExcelData(data);
-                uploadButtonSpan.querySelector('.upload-btn-text-pc').textContent = 'ファイルをアップロード済み';
-                uploadButtonSpan.querySelector('.upload-btn-text-sp').textContent = 'アップロード済み';
+                uploadButtonSpan.querySelector('.upload-btn-text-pc').textContent = 'ファイルを';
+                uploadButtonSpan.querySelector('.upload-btn-text-sp').textContent = 'アップロード';
                 uploadButtonSpan.classList.remove('bg-rose-500', 'hover:bg-rose-600');
                 uploadButtonSpan.classList.add('bg-green-500', 'hover:bg-green-600');
             };
