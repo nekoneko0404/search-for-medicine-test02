@@ -35,46 +35,25 @@
                 padding: 0.5rem;
             }
             
-            /* 行を2段表示にする */
-            .row-group {
-                display: flex;
-                flex-wrap: wrap;
-                border-bottom: 1px solid #e5e7eb;
+            /* 行を1品目5行に表示する */
+            .table-container thead {
+                display: none; /* スマホではヘッダーを非表示 */
             }
-
-            .cell-group {
-                display: flex;
-                flex-direction: column;
+            .table-container tbody, .table-container tr {
+                display: block; /* tbodyとtrをブロック要素にして積み重ねる */
+            }
+            .table-container tr {
+                margin-bottom: 1rem;
                 padding: 0.5rem;
+                border: 1px solid #e5e7eb;
+                border-radius: 0.5rem;
             }
-
-            .cell-group:first-child {
-                width: 60%;
+            .table-container td {
+                display: block; /* tdをブロック要素にして積み重ねる */
+                width: 100%;
+                border-bottom: none;
+                padding: 0.25rem 0.5rem;
             }
-            .cell-group:last-child {
-                width: 40%;
-            }
-            
-            .cell-label {
-                font-weight: 600;
-                color: #4b5563;
-                font-size: 0.75rem;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-                margin-bottom: 0.25rem;
-            }
-            
-            /* PC画面では非表示にする */
-            .cell-group { display: block; }
-            .cell-label { display: none; }
-            .table-container thead { display: table-header-group; }
-            
-            /* スマホ画面では2段表示に */
-            .table-container .row-group { display: flex; }
-            .table-container tbody { display: block; }
-            .table-container tr { display: flex; flex-direction: column; }
-            .table-container td { padding: 0.5rem; }
-            .table-container thead { display: none; }
             .table-container td:before {
                 content: attr(data-label);
                 font-weight: 600;
@@ -85,8 +64,6 @@
                 display: block;
                 margin-bottom: 0.25rem;
             }
-            
-            /* 複数行表示と省略を制御 */
             .truncate-lines {
                 display: -webkit-box;
                 -webkit-line-clamp: 2; /* 2行に制限 */
@@ -151,7 +128,14 @@
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">品名</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">成分名</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">出荷対応状況</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                            <div class="flex items-center">
+                                <span>出荷対応状況</span>
+                                <button onclick="sortResults('status')" class="ml-1 text-gray-400 hover:text-gray-600 transition-colors duration-150">
+                                    <span id="sort-status-icon">▲</span>
+                                </button>
+                            </div>
+                        </th>
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">限定出荷/供給停止理由</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">出荷量状況</th>
                     </tr>
@@ -171,6 +155,10 @@
 
     <script>
         let excelData = [];
+        let filteredResults = []; // 検索結果を格納する配列
+        let sortStates = { // ソートの状態を管理
+            status: 'asc'
+        };
         const messageBox = document.getElementById('messageBox');
         
         // メッセージを表示する関数
@@ -258,10 +246,8 @@
             const ingredient = normalizeString(document.getElementById('ingredientName').value.trim());
             const maker = normalizeString(document.getElementById('makerName').value.trim());
 
-            const resultBody = document.getElementById('resultTableBody');
-            resultBody.innerHTML = "";
-            let results = [];
-
+            filteredResults = []; // 新しい検索結果を格納
+            
             // ヘッダー行をスキップして検索
             for (let i = 1; i < excelData.length; i++) {
                 const row = excelData[i];
@@ -281,38 +267,65 @@
                 const matchMaker = maker === "" || (drugName.includes(maker) || makerName.includes(maker));
 
                 if (matchDrug && matchIngredient && matchMaker) {
-                    results.push(row);
+                    filteredResults.push(row);
                 }
             }
 
-            if (results.length === 0) {
-                const row = resultBody.insertRow();
-                const cell = row.insertCell(0);
-                cell.colSpan = 5;
-                cell.textContent = "該当データがありません";
-                cell.className = "px-4 py-3 text-sm text-gray-500 text-center italic";
+            if (filteredResults.length === 0) {
+                renderTable(filteredResults);
                 showMessage("検索結果が見つかりませんでした。", "info");
                 hideMessage(3000);
                 return;
             }
+            
+            // 初期ソート状態をリセット
+            sortStates.status = 'asc';
+            document.getElementById('sort-status-icon').textContent = '▲';
 
-            // 結果の表示を最大500件に制限
-            const displayResults = results.slice(0, 500);
-            displayResults.forEach(row => {
+            renderTable(filteredResults);
+
+            if (filteredResults.length > 500) {
+                showMessage(`${filteredResults.length} 件のデータが見つかりました。\n表示は上位 500 件に制限されています。`, "success");
+            } else {
+                showMessage(`${filteredResults.length} 件のデータが見つかりました。`, "success");
+            }
+            hideMessage(3000);
+        }
+
+        // テーブルをレンダリングする関数
+        function renderTable(data) {
+            const resultBody = document.getElementById('resultTableBody');
+            resultBody.innerHTML = "";
+
+            if (data.length === 0) {
+                const row = resultBody.insertRow();
+                const cell = row.insertCell(0);
+                cell.colSpan = 5; 
+                cell.textContent = "該当データがありません";
+                cell.className = "px-4 py-3 text-sm text-gray-500 text-center italic";
+                return;
+            }
+
+            const displayResults = data.slice(0, 500);
+            displayResults.forEach((row, index) => {
                 const newRow = resultBody.insertRow();
-                newRow.className = "transition-colors duration-150 hover:bg-gray-50";
+                // 行のインデックスに基づいて背景色を交互に設定
+                const rowBgClass = index % 2 === 1 ? 'bg-gray-50' : 'bg-white';
+                newRow.className = `${rowBgClass} transition-colors duration-150 hover:bg-gray-200`;
 
-                // スマホ用2段表示のデータラベルを追加
+                // 品名
                 const drugNameCell = newRow.insertCell(0);
                 drugNameCell.textContent = row[5] || "";
                 drugNameCell.setAttribute('data-label', '品名');
                 drugNameCell.classList.add("truncate-lines");
                 
+                // 成分名
                 const ingredientNameCell = newRow.insertCell(1);
                 ingredientNameCell.textContent = row[2] || "";
                 ingredientNameCell.setAttribute('data-label', '成分名');
                 ingredientNameCell.classList.add("truncate-lines");
 
+                // 出荷対応状況
                 const statusCell = newRow.insertCell(2);
                 statusCell.textContent = row[11] || "";
                 statusCell.setAttribute('data-label', '出荷対応状況');
@@ -329,12 +342,36 @@
                     newRow.cells[i].className = "px-4 py-3 text-sm text-gray-900";
                 }
             });
+        }
 
-            if (results.length > 500) {
-                showMessage(`${results.length} 件のデータが見つかりました。\n表示は上位 500 件に制限されています。`, "success");
-            } else {
-                showMessage(`${results.length} 件のデータが見つかりました。`, "success");
+        // ソートを実行する関数
+        function sortResults(key) {
+            if (filteredResults.length === 0) {
+                showMessage("ソートするデータがありません。", "info");
+                hideMessage(3000);
+                return;
             }
+
+            // ソートの方向を反転
+            const newDirection = sortStates[key] === 'asc' ? 'desc' : 'asc';
+            sortStates[key] = newDirection;
+
+            // ソートアイコンを更新
+            document.getElementById(`sort-${key}-icon`).textContent = newDirection === 'asc' ? '▲' : '▼';
+            
+            // 出荷対応状況のソート
+            filteredResults.sort((a, b) => {
+                const aValue = (a[11] || '').trim(); // J列: 出荷対応状況
+                const bValue = (b[11] || '').trim();
+                
+                // 日本語の文字列比較
+                const compare = aValue.localeCompare(bValue, 'ja', { sensitivity: 'base' });
+                return newDirection === 'asc' ? compare : -compare;
+            });
+
+            // テーブルを再レンダリング
+            renderTable(filteredResults);
+            showMessage(`「出荷対応状況」を${newDirection === 'asc' ? '昇順' : '降順'}でソートしました。`, "success");
             hideMessage(3000);
         }
         
