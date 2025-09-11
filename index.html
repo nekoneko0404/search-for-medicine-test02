@@ -49,7 +49,8 @@
                 border-radius: 0.5rem;
             }
             .table-container td {
-                display: block; /* tdをブロック要素にして積み重ねる */
+                display: flex; /* Flexboxを使って項目と内容を横並びに */
+                align-items: flex-start;
                 width: 100%;
                 border-bottom: none;
                 padding: 0.25rem 0.5rem;
@@ -61,14 +62,34 @@
                 font-size: 0.75rem;
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
-                display: block;
-                margin-bottom: 0.25rem;
+                flex-shrink: 0; /* ラベルが縮まないように固定 */
+                width: 120px; /* ラベルの幅を確保 */
+                margin-right: 0.5rem; /* ラベルと内容の間にスペースを追加 */
             }
             .truncate-lines {
                 display: -webkit-box;
                 -webkit-line-clamp: 2; /* 2行に制限 */
                 -webkit-box-orient: vertical;
                 overflow: hidden;
+            }
+            
+            /* スマートフォンで非表示にする項目 */
+            td[data-label='成分名'],
+            td[data-label='出荷量状況'] {
+                display: none;
+            }
+        }
+
+        /* スマートフォン表示時のみボタンのテキストを変更 */
+        @media (max-width: 640px) {
+            #downloadButtonText {
+                content: "厚労省ダウンロード";
+            }
+            #uploadButtonText, #uploadedButtonText {
+                content: "アップロード";
+            }
+            #uploadedButtonText.uploaded {
+                content: "アップロード済み";
             }
         }
     </style>
@@ -86,11 +107,15 @@
             <!-- 修正：スマホでも確実に2列になるように変更 -->
             <div class="grid grid-cols-2 gap-4">
                 <a href="https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kenkou_iryou/iryou/kouhatu-iyaku/04_00003.html" target="_blank" class="w-full">
-                    <button class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow transition ease-in-out duration-150">厚生労働省のサイトでダウンロード</button>
+                    <button id="downloadButton" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow transition ease-in-out duration-150">
+                        <span class="block lg:hidden">厚労省ダウンロード</span>
+                        <span class="hidden lg:block">厚生労働省のサイトでダウンロード</span>
+                    </button>
                 </a>
                 <label for="fileInput" class="w-full cursor-pointer block">
                     <span id="uploadButtonText" class="block bg-rose-500 hover:bg-rose-600 text-white font-bold py-2 px-4 rounded-md shadow text-center transition ease-in-out duration-150">
-                        ファイルをアップロード
+                        <span class="block lg:hidden">アップロード</span>
+                        <span class="hidden lg:block">ファイルをアップロード</span>
                     </span>
                     <input type="file" id="fileInput" accept=".xlsx, .xls" class="hidden">
                 </label>
@@ -201,7 +226,8 @@
             if (!file) {
                 showMessage("ファイルが選択されていません。", "error");
                 hideMessage(3000);
-                uploadButtonSpan.textContent = 'ファイルをアップロード';
+                uploadButtonSpan.querySelector('.hidden.lg\\:block').textContent = 'ファイルをアップロード';
+                uploadButtonSpan.querySelector('.block.lg\\:hidden').textContent = 'アップロード';
                 uploadButtonSpan.classList.remove('bg-green-500', 'hover:bg-green-600');
                 uploadButtonSpan.classList.add('bg-rose-500', 'hover:bg-rose-600');
                 return;
@@ -210,7 +236,8 @@
             reader.onload = function(e) {
                 const data = new Uint8Array(e.target.result);
                 processExcelData(data);
-                uploadButtonSpan.textContent = 'ファイルをアップロード済み';
+                uploadButtonSpan.querySelector('.hidden.lg\\:block').textContent = 'ファイルをアップロード済み';
+                uploadButtonSpan.querySelector('.block.lg\\:hidden').textContent = 'アップロード済み';
                 uploadButtonSpan.classList.remove('bg-rose-500', 'hover:bg-rose-600');
                 uploadButtonSpan.classList.add('bg-green-500', 'hover:bg-green-600');
             };
