@@ -82,14 +82,27 @@
 
         /* スマートフォン表示時のみボタンのテキストを変更 */
         @media (max-width: 640px) {
-            #downloadButtonText {
-                content: "厚労省ダウンロード";
+            .download-btn-text-pc,
+            .upload-btn-text-pc,
+            .uploaded-btn-text-pc {
+                display: none;
             }
-            #uploadButtonText, #uploadedButtonText {
-                content: "アップロード";
+            .download-btn-text-sp,
+            .upload-btn-text-sp,
+            .uploaded-btn-text-sp {
+                display: block;
             }
-            #uploadedButtonText.uploaded {
-                content: "アップロード済み";
+        }
+        @media (min-width: 641px) {
+            .download-btn-text-pc,
+            .upload-btn-text-pc,
+            .uploaded-btn-text-pc {
+                display: block;
+            }
+            .download-btn-text-sp,
+            .upload-btn-text-sp,
+            .uploaded-btn-text-sp {
+                display: none;
             }
         }
     </style>
@@ -108,14 +121,14 @@
             <div class="grid grid-cols-2 gap-4">
                 <a href="https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kenkou_iryou/iryou/kouhatu-iyaku/04_00003.html" target="_blank" class="w-full">
                     <button id="downloadButton" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow transition ease-in-out duration-150">
-                        <span class="block lg:hidden">厚労省ダウンロード</span>
-                        <span class="hidden lg:block">厚生労働省のサイトでダウンロード</span>
+                        <span class="download-btn-text-pc">厚生労働省のサイトでダウンロード</span>
+                        <span class="download-btn-text-sp">ダウンロード</span>
                     </button>
                 </a>
                 <label for="fileInput" class="w-full cursor-pointer block">
                     <span id="uploadButtonText" class="block bg-rose-500 hover:bg-rose-600 text-white font-bold py-2 px-4 rounded-md shadow text-center transition ease-in-out duration-150">
-                        <span class="block lg:hidden">アップロード</span>
-                        <span class="hidden lg:block">ファイルをアップロード</span>
+                        <span class="upload-btn-text-pc">ファイルをアップロード</span>
+                        <span class="upload-btn-text-sp">アップロード</span>
                     </span>
                     <input type="file" id="fileInput" accept=".xlsx, .xls" class="hidden">
                 </label>
@@ -226,8 +239,8 @@
             if (!file) {
                 showMessage("ファイルが選択されていません。", "error");
                 hideMessage(3000);
-                uploadButtonSpan.querySelector('.hidden.lg\\:block').textContent = 'ファイルをアップロード';
-                uploadButtonSpan.querySelector('.block.lg\\:hidden').textContent = 'アップロード';
+                uploadButtonSpan.querySelector('.upload-btn-text-pc').textContent = 'ファイルをアップロード';
+                uploadButtonSpan.querySelector('.upload-btn-text-sp').textContent = 'アップロード';
                 uploadButtonSpan.classList.remove('bg-green-500', 'hover:bg-green-600');
                 uploadButtonSpan.classList.add('bg-rose-500', 'hover:bg-rose-600');
                 return;
@@ -236,8 +249,8 @@
             reader.onload = function(e) {
                 const data = new Uint8Array(e.target.result);
                 processExcelData(data);
-                uploadButtonSpan.querySelector('.hidden.lg\\:block').textContent = 'ファイルをアップロード済み';
-                uploadButtonSpan.querySelector('.block.lg\\:hidden').textContent = 'アップロード済み';
+                uploadButtonSpan.querySelector('.upload-btn-text-pc').textContent = 'ファイルをアップロード済み';
+                uploadButtonSpan.querySelector('.upload-btn-text-sp').textContent = 'アップロード済み';
                 uploadButtonSpan.classList.remove('bg-rose-500', 'hover:bg-rose-600');
                 uploadButtonSpan.classList.add('bg-green-500', 'hover:bg-green-600');
             };
