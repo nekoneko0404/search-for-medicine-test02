@@ -148,9 +148,9 @@
                 <label for="ingredientName" class="block text-gray-700 text-sm font-medium mb-1">成分名:</label>
                 <input type="text" id="ingredientName" placeholder="例: ロキソプロフェン" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 transition ease-in-out duration-150 p-2">
             </div>
-            <!-- 規格・剤形・メーカー -->
+            <!-- 規格・剤形・ﾒｰｶｰ -->
             <div class="col-span-1">
-                <label for="makerName" class="block text-gray-700 text-sm font-medium mb-1">規格、剤形、メーカー:</label>
+                <label for="makerName" class="block text-gray-700 text-sm font-medium mb-1">規格、剤形、ﾒｰｶｰ:</label>
                 <input type="text" id="makerName" placeholder="例: 60mg" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 transition ease-in-out duration-150 p-2">
             </div>
             <!-- 検索ボタン -->
@@ -249,8 +249,8 @@
             reader.onload = function(e) {
                 const data = new Uint8Array(e.target.result);
                 processExcelData(data);
-                uploadButtonSpan.querySelector('.upload-btn-text-pc').textContent = 'ファイルを';
-                uploadButtonSpan.querySelector('.upload-btn-text-sp').textContent = 'アップロード';
+                uploadButtonSpan.querySelector('.upload-btn-text-pc').textContent = 'ファイルをアップロード済み';
+                uploadButtonSpan.querySelector('.upload-btn-text-sp').textContent = 'アップロード済み';
                 uploadButtonSpan.classList.remove('bg-rose-500', 'hover:bg-rose-600');
                 uploadButtonSpan.classList.add('bg-green-500', 'hover:bg-green-600');
             };
@@ -303,7 +303,7 @@
                 const matchDrug = drug === "" || drugName.includes(drug);
                 const matchIngredient = ingredient === "" || ingredientName.includes(ingredient);
                 
-                // 品名、規格、剤形、メーカー名に対してmakerNameを検索
+                // 品名、規格、剤形、ﾒｰｶｰ名に対してmakerNameを検索
                 const matchMaker = maker === "" || (drugName.includes(maker) || makerName.includes(maker));
 
                 if (matchDrug && matchIngredient && matchMaker) {
