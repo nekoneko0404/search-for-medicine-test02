@@ -223,11 +223,15 @@
         // 半角・全角、ひらがな・カタカナ、大文字・小文字を区別せず統一する関数
         function normalizeString(str) {
             if (!str) return '';
-            let normalizedStr = String(str);
-            // 全角カタカナをひらがなに、全角英数字を半角に変換
-            normalizedStr = normalizedStr.replace(/[ァ-ヶ]/g, s => String.fromCharCode(s.charCodeAt(0) - 0x60));
-            normalizedStr = normalizedStr.replace(/[Ａ-Ｚａ-ｚ０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
-            return normalizedStr.toLowerCase().replace(/\s/g, ''); // 空白も除去
+            // ① ひらがなをカタカナに変換
+            const hiraToKata = str.replace(/[\u3041-\u3096]/g, function(match) {
+                const charCode = match.charCodeAt(0) + 0x60;
+                return String.fromCharCode(charCode);
+            });
+            // ② Unicode正規化(NFKC)で全角英数字・記号を半角に統一し、空白を除去
+            const normalizedStr = hiraToKata.normalize('NFKC').replace(/\s/g, '');
+            // ③ 全てを小文字に変換
+            return normalizedStr.toLowerCase();
         }
 
         // ファイル読み込みイベントリスナー
@@ -249,8 +253,13 @@
             reader.onload = function(e) {
                 const data = new Uint8Array(e.target.result);
                 processExcelData(data);
+                
+                // PC表示用のボタンテキストを変更
                 uploadButtonSpan.querySelector('.upload-btn-text-pc').textContent = 'ファイルをアップロード済み';
-                uploadButtonSpan.querySelector('.upload-btn-text-sp').textContent = 'アップロード済み';
+                
+                // スマートフォン表示用のボタンテキストは変更しない
+                // uploadButtonSpan.querySelector('.uploaded-btn-text-sp').textContent = 'アップロード済み';
+                
                 uploadButtonSpan.classList.remove('bg-rose-500', 'hover:bg-rose-600');
                 uploadButtonSpan.classList.add('bg-green-500', 'hover:bg-green-600');
             };
