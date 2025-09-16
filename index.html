@@ -116,8 +116,13 @@
 
         <!-- ファイルアップロード/ダウンロード欄 -->
         <div class="mb-6">
-            <label class="block text-gray-700 font-medium mb-2">Excelファイルを準備してください</label>
-            <!-- 修正：スマホでも確実に2列になるように変更 -->
+            <!-- ラベルと「使い方」ボタンを同じ行に配置 -->
+            <div class="flex justify-between items-center mb-2">
+                <label class="block text-gray-700 font-medium">Excelファイルを準備してください</label>
+                <a href="https://nekoneko0404.github.io/search-for-medicine-test02-ReadMe/" target="_blank" class="text-blue-500 hover:text-blue-600 transition ease-in-out duration-150 font-medium">
+                    使い方
+                </a>
+            </div>
             <div class="grid grid-cols-2 gap-4">
                 <a href="https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kenkou_iryou/iryou/kouhatu-iyaku/04_00003.html" target="_blank" class="w-full">
                     <button id="downloadButton" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow transition ease-in-out duration-150">
@@ -303,7 +308,7 @@
                 if (!row || row.length < 17) continue;
 
                 // データの文字列も正規化して比較
-                const drugName = normalizeString(row[5]);      // F列: 品名
+                const drugName = normalizeString(row[5]);       // F列: 品名
                 const ingredientName = normalizeString(row[2]); // C列: 成分名
                 // G列（規格・剤形）とJ列（販売会社名）を結合してメーカー検索対象とする
                 const makerName = normalizeString((row[6] || "") + (row[9] || ""));
