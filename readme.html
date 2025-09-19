@@ -37,9 +37,33 @@
             このドキュメントでは、厚生労働省が公開する医薬品出荷状況に関するExcelファイルを活用し、効率的な情報検索を実現するウェブアプリケーションについて解説します。簡単な操作性、AND検索、文字の正規化、ソート機能、レスポンシブデザインといった特徴を備え、医薬品に関する情報を迅速かつ正確に取得することを目的としています。
           </p>
         </section>
-
+        
+        
+        
         <section>
-          <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4 border-l-4 border-emerald-500 pl-4">はじめに</h2>
+          <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4 border-l-4 border-emerald-500 pl-4">注意事項</h2>
+          <ul class="space-y-4 text-lg leading-relaxed">
+            <li>本ツールは、厚生労働省が公開しているExcelファイルに基づいて情報を表示します。データの正確性については、厚生労働省のウェブサイトで最新の情報を確認してください。</li>
+            <li>本ツールの利用によって生じたいかなる損害についても、開発者は責任を負いません。</li>
+            <li>本ツールの著作権は開発者に帰属します。無断での複製、配布、販売は禁止します。</li>
+          </ul>
+        </section>
+        
+        <section>
+          <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4 border-l-4 border-emerald-500 pl-4">使用方法</h2>
+          <ol class="list-decimal list-inside space-y-4 text-lg leading-relaxed">
+            <li><strong>Excelファイルのアップロード:</strong> 厚生労働省のウェブサイトから最新の医薬品出荷状況に関するExcelファイルをダウンロードし、本ツールのアップロード画面からアップロードします。</li>
+            <li><strong>検索条件の入力:</strong> 「医薬品名」「成分名」「規格、剤形、メーカー」の各項目に、検索したいキーワードを入力します。複数の項目にキーワードを入力することで、AND検索が可能です。</li>
+            <li><strong>検索の実行:</strong> 検索ボタンをクリックすると、入力された条件に合致する医薬品の情報が表示されます。</li>
+            <li><strong>検索結果の確認:</strong> 検索結果はテーブル形式で表示されます。各医薬品の「医薬品名」「成分名」「規格、剤形、メーカー」「出荷状況」などの情報が確認できます。</li>
+            <li><strong>ソート:</strong> 「出荷状況」の項目をクリックすると、検索結果を「出荷状況」で並べ替えることができます。</li>
+           
+          </ol>
+        </section>
+        
+        
+        <section>
+          <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4 border-l-4 border-emerald-500 pl-4">開発目的</h2>
           <p class="text-lg leading-relaxed">
             医薬品の出荷状況は、医療現場において非常に重要な情報です。厚生労働省は、この情報をExcelファイルとして公開していますが、そのデータ量は膨大であり、必要な情報を手作業で探し出すのは困難です。そこで、本ツールは、このExcelファイルをアップロードするだけで、必要な情報を効率的に検索できるウェブアプリケーションとして開発されました。
           </p>
@@ -76,26 +100,8 @@
           </ul>
         </section>
 
-        <section>
-          <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4 border-l-4 border-emerald-500 pl-4">使用方法</h2>
-          <ol class="list-decimal list-inside space-y-4 text-lg leading-relaxed">
-            <li><strong>Excelファイルのアップロード:</strong> 厚生労働省のウェブサイトから最新の医薬品出荷状況に関するExcelファイルをダウンロードし、本ツールのアップロード画面からアップロードします。</li>
-            <li><strong>検索条件の入力:</strong> 「医薬品名」「成分名」「規格、剤形、メーカー」の各項目に、検索したいキーワードを入力します。複数の項目にキーワードを入力することで、AND検索が可能です。</li>
-            <li><strong>検索の実行:</strong> 検索ボタンをクリックすると、入力された条件に合致する医薬品の情報が表示されます。</li>
-            <li><strong>検索結果の確認:</strong> 検索結果はテーブル形式で表示されます。各医薬品の「医薬品名」「成分名」「規格、剤形、メーカー」「出荷状況」などの情報が確認できます。</li>
-            <li><strong>ソート:</strong> 「出荷状況」の項目をクリックすると、検索結果を「出荷状況」で並べ替えることができます。</li>
-           
-          </ol>
-        </section>
 
-        <section>
-          <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4 border-l-4 border-emerald-500 pl-4">注意事項</h2>
-          <ul class="space-y-4 text-lg leading-relaxed">
-            <li>本ツールは、厚生労働省が公開しているExcelファイルに基づいて情報を表示します。データの正確性については、厚生労働省のウェブサイトで最新の情報を確認してください。</li>
-            <li>本ツールの利用によって生じたいかなる損害についても、開発者は責任を負いません。</li>
-            <li>本ツールの著作権は開発者に帰属します。無断での複製、配布、販売は禁止します。</li>
-          </ul>
-        </section>
+
         
         <section>
           <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4 border-l-4 border-emerald-500 pl-4">今後の展望</h2>
