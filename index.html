@@ -10,13 +10,13 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght400;700&display=swap">
     <link rel="stylesheet" href="unify.css">
     <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CT2JQPSMPL"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-VXSZGE4HP7"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-
-      gtag('config', 'G-CT2JQPSMPL');
+    
+      gtag('config', 'G-VXSZGE4HP7');
     </script>
 </head>
 <body class="bg-gray-200 p-4 sm:p-8 flex flex-col items-center min-h-screen">
@@ -111,11 +111,7 @@
         const messageBox = document.getElementById('messageBox');
         const tableContainer = document.getElementById('tableContainer');
         let isComposing = false;
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> 15b4aceefd526650001e83b755f4ac3ffedf467d
         function showMessage(text, type = 'info') {
             messageBox.textContent = text;
             messageBox.classList.remove('hidden', 'bg-red-200', 'text-red-800', 'bg-green-200', 'text-green-800', 'bg-blue-200', 'text-blue-800');
@@ -135,11 +131,7 @@
         }
         function normalizeString(str) {
             if (!str) return '';
-<<<<<<< HEAD
             const hiraToKata = str.replace(/[ぁ-ゖ]/g, function(match) {
-=======
-            const hiraToKata = str.replace(/[\u3041-\u3096]/g, function(match) {
->>>>>>> 15b4aceefd526650001e83b755f4ac3ffedf467d
                 const charCode = match.charCodeAt(0) + 0x60;
                 return String.fromCharCode(charCode);
             });
@@ -149,15 +141,11 @@
         function getSearchKeywords(input) {
             return input.split(/\s+|　+/).filter(keyword => keyword !== '').map(keyword => normalizeString(keyword));
         }
-<<<<<<< HEAD
 
-=======
->>>>>>> 15b4aceefd526650001e83b755f4ac3ffedf467d
         function processExcelData(data) {
             try {
                 const workbook = XLSX.read(data, {type: 'array'});
                 const sheetName = workbook.SheetNames[0];
-<<<<<<< HEAD
                 const worksheet = workbook.Sheets[sheetName];
                 
                 const jsonDataWithStrings = XLSX.utils.sheet_to_json(worksheet, { header: 1, range: 1, defval: "" });
@@ -194,12 +182,6 @@
 
                 excelData = mappedData;
 
-=======
-                const sheet = workbook.Sheets[sheetName];
-                excelData = XLSX.utils.sheet_to_json(sheet, {header:1});
-                showMessage("データの読み込みが完了しました。", "success");
-                hideMessage(2000);
->>>>>>> 15b4aceefd526650001e83b755f4ac3ffedf467d
             } catch (error) {
                 console.error('Error processing data:', error);
                 showMessage("データの処理中にエラーが発生しました。", "error");
@@ -207,44 +189,21 @@
             }
         }
 
-<<<<<<< HEAD
         function renderStatusButton(status) {
             const trimmedStatus = (status || "").trim();
-=======
-        /**
-         * @param {string} status 出荷状況の文字列 (例: '限定出荷')
-         * @returns {string} Tailwind CSSで装飾された<span>タグのHTML文字列
-         */
-        function renderStatusButton(status) {
-            const trimmedStatus = (status || "").trim();
-            // インラインブロック要素にすることで、リンクがボタン全体を覆うようにする
->>>>>>> 15b4aceefd526650001e83b755f4ac3ffedf467d
             let baseClass = "px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap inline-block transition-colors duration-150";
             
             if (trimmedStatus.includes("通常出荷") || trimmedStatus.includes("通")) {
                 return `<span class="${baseClass} bg-indigo-500 text-white hover:bg-indigo-600">通常出荷</span>`; 
-<<<<<<< HEAD
             } else if (trimmedStatus.includes("限定出荷") || trimmedStatus.includes("出荷制限") || trimmedStatus.includes("限") || trimmedStatus.includes("制")) {
                 return `<span class="${baseClass} bg-yellow-400 text-gray-800 hover:bg-yellow-500">限定出荷</span>`;
             } else if (trimmedStatus.includes("供給停止") || trimmedStatus.includes("停止") || trimmedStatus.includes("停")) {
                 return `<span class="${baseClass} bg-gray-700 text-white hover:bg-gray-800">供給停止</span>`;
             } else {
-=======
-            } else if (trimmedStatus.includes("限定出荷") || trimmedStatus.includes("限定出荷") || trimmedStatus.includes("限") || trimmedStatus.includes("制")) {
-                return `<span class="${baseClass} bg-yellow-400 text-gray-800 hover:bg-yellow-500">限定出荷</span>`; // ✅ 変更
-            } else if (trimmedStatus.includes("供給停止") || trimmedStatus.includes("停止") || trimmedStatus.includes("停")) {
-                return `<span class="${baseClass} bg-gray-700 text-white hover:bg-gray-800">供給停止</span>`; // ✅ 変更
-            } else {
-                // その他の場合は元の文字列、または不明なステータスとして表示
->>>>>>> 15b4aceefd526650001e83b755f4ac3ffedf467d
                 return `<span class="${baseClass} bg-gray-200 text-gray-800 hover:bg-gray-300">${trimmedStatus || "不明"}</span>`; 
             }
         }
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 15b4aceefd526650001e83b755f4ac3ffedf467d
         function searchData() {
             if (excelData.length === 0) {
                 return;
@@ -267,7 +226,6 @@
             }
             
             const statusFilters = [];
-<<<<<<< HEAD
             if (document.getElementById('statusNormal').checked) statusFilters.push("通常出荷");
             if (document.getElementById('statusLimited').checked) statusFilters.push("限定出荷");
             if (document.getElementById('statusStopped').checked) statusFilters.push("供給停止");
@@ -278,34 +236,11 @@
                 const drugName = normalizeString(item.productName || "");
                 const ingredientName = normalizeString(item.ingredientName || "");
                 const makerName = normalizeString((item.standard || "") + (item.manufacturer || ""));
-=======
-            if (document.getElementById('statusNormal').checked) {
-                statusFilters.push("通常出荷");
-            }
-            if (document.getElementById('statusLimited').checked) {
-                statusFilters.push("限定出荷"); 
-                statusFilters.push("限定出荷"); 
-            }
-            if (document.getElementById('statusStopped').checked) {
-                statusFilters.push("供給停止");
-            }
-
-            filteredResults = [];
-            for (let i = 1; i < excelData.length; i++) {
-                const row = excelData[i];
-                if (!row || row.length < 17) continue;
-
-                const drugName = normalizeString(row[5] || "");
-                const ingredientName = normalizeString(row[2] || "");
-                const makerName = normalizeString((row[6] || "") + (row[9] || ""));
-                const currentStatus = (row[11] || '').trim(); 
->>>>>>> 15b4aceefd526650001e83b755f4ac3ffedf467d
 
                 const matchDrug = drugKeywords.every(keyword => drugName.includes(keyword));
                 const matchIngredient = ingredientKeywords.every(keyword => ingredientName.includes(keyword));
                 const matchMaker = makerKeywords.every(keyword => drugName.includes(keyword) || makerName.includes(keyword));
                 
-<<<<<<< HEAD
                 if (statusFilters.length === 0) return false;
 
                 const currentStatus = (item.shipmentStatus || '').trim();
@@ -323,27 +258,6 @@
                 
                 return matchDrug && matchIngredient && matchMaker && matchStatus;
             });
-=======
-                let matchStatus = false;
-                let statusText = '';
-                if (currentStatus.includes('通常') || currentStatus.includes('通')) {
-                    statusText = '通常出荷';
-                } else if (currentStatus.includes('限定') || currentStatus.includes('限') || currentStatus.includes('制限') || currentStatus.includes('制')) { 
-                    statusText = '限定出荷';
-                    if (currentStatus.includes('限定')) statusText = '限定出荷'; 
-                } else if (currentStatus.includes('停止') || currentStatus.includes('停')) {
-                    statusText = '供給停止';
-                }
-                
-                if (statusFilters.includes(statusText)) {
-                    matchStatus = true;
-                }
-                
-                if (matchDrug && matchIngredient && matchMaker && matchStatus) {
-                    filteredResults.push(row);
-                }
-            }
->>>>>>> 15b4aceefd526650001e83b755f4ac3ffedf467d
             
             renderTable(filteredResults);
             
@@ -362,10 +276,6 @@
             document.getElementById('sort-status-icon').textContent = '▲';
         }
         
-<<<<<<< HEAD
-=======
-        // handleIngredientClick関数は変更なし
->>>>>>> 15b4aceefd526650001e83b755f4ac3ffedf467d
         function handleIngredientClick(ingredient) {
             document.getElementById('drugName').value = '';
             document.getElementById('makerName').value = '';
@@ -378,7 +288,6 @@
 
         function extractSearchTerm(text) {
             if (!text) return '';
-<<<<<<< HEAD
             let match = text.match(/^([一-龯ァ-ヶー]+(?:[一-龯ァ-ヶー]+)*)/);
             if (match && match) { return match; }
             match = text.match(/[^一-龯ァ-ヶーA-Za-z0-9]*([一-龯ァ-ヶー]+(?:[一-龯ァ-ヶー]+)*)/);
@@ -386,48 +295,18 @@
             return text;
         }
 
-=======
-
-            // 漢字とカタカナ、またはカタカナと漢字が連続している場合は両方を含める
-            // 例: 小児用レルベア５０エリプタ３０吸入用 -> 小児用レルベア
-            // 例: レルベア小児用５０エリプタ３０吸入用 -> レルベア小児用
-            let match = text.match(/^([一-龯ァ-ヶー]+(?:[一-龯ァ-ヶー]+)*)/);
-            if (match && match) {
-                return match;
-            }
-
-            // 記号や数字で始まっているものはそのあとから、以降は同様
-            // 例: ５０エリプタ３０吸入用 -> エリプタ
-            match = text.match(/[^一-龯ァ-ヶーA-Za-z0-9]*([一-龯ァ-ヶー]+(?:[一-龯ァ-ヶー]+)*)/);
-            if (match && match) {
-                return match;
-            }
-            
-            // 上記のいずれにも当てはまらない場合、元のテキストを返す
-            return text;
-        }
-
-        // 修正箇所：/hiyari_app/index.html に渡すパラメータを正規化して単一の成分名だけ渡す
->>>>>>> 15b4aceefd526650001e83b755f4ac3ffedf467d
         function openHiyariPage(type, name) {
             const hiyariBaseUrl = './hiyari_app/index.html';
             let extractedName = extractSearchTerm(name);
 
-<<<<<<< HEAD
             if (Array.isArray(extractedName)) {
                 extractedName = extractedName || '';
-=======
-            // extractSearchTerm は match の配列が返ることがあるため、文字列化して正しく扱う
-            if (Array.isArray(extractedName)) {
-                extractedName = extractedName[0] || '';
->>>>>>> 15b4aceefd526650001e83b755f4ac3ffedf467d
             } else if (typeof extractedName !== 'string') {
                 extractedName = String(extractedName || '');
             }
 
             let finalName = extractedName;
 
-<<<<<<< HEAD
             if (type === 'ingredientName' && finalName) {
                 const parts = finalName.split(/[，,、]/).map(p => p.trim()).filter(p => p !== '');
                 let candidate = '';
@@ -445,34 +324,6 @@
                     finalName = candidate;
                 } else if (parts.length > 0) {
                     finalName = parts;
-=======
-            // 成分名の場合はカンマ区切りや接頭辞（例: Ｌ－）を取り除いて
-            // 実用的な「単一の成分名（主にカタカナ）」を選ぶ
-            if (type === 'ingredientName' && finalName) {
-                // カンマ（,、，）で分割
-                const parts = finalName.split(/[，,、]/).map(p => p.trim()).filter(p => p !== '');
-
-                // まずは各パートからカタカナの連続部分を探す（例: "Ｌ－カルボシステイン" -> "カルボシステイン"）
-                let candidate = '';
-                for (const p of parts) {
-                    const m = p.match(/([ァ-ヶー]+)/);
-                    if (m && m[1]) {
-                        candidate = m[1];
-                        break;
-                    }
-                }
-
-                // カタカナが見つからなければ、先頭のパートから先頭にある "Ｌ" や "L" とハイフンを削る
-                if (!candidate && parts.length > 0) {
-                    candidate = parts[0].replace(/^[\uFF2C\u004C][－-]?/, '').trim();
-                }
-
-                // 最終的に候補があればそれを使う（無ければ元の extractedName を使う）
-                if (candidate) {
-                    finalName = candidate;
-                } else if (parts.length > 0) {
-                    finalName = parts[0];
->>>>>>> 15b4aceefd526650001e83b755f4ac3ffedf467d
                 }
             }
 
@@ -480,17 +331,9 @@
             window.open(url, '_blank');
         }
 
-<<<<<<< HEAD
         function renderTable(data) {
             const resultBody = document.getElementById('resultTableBody');
             resultBody.innerHTML = "";
-=======
-        // テーブルのレンダリング関数を修正
-        function renderTable(data) {
-            const resultBody = document.getElementById('resultTableBody');
-            resultBody.innerHTML = "";
-            const statusIndex = 11; // L列のインデックス
->>>>>>> 15b4aceefd526650001e83b755f4ac3ffedf467d
 
             if (data.length === 0) {
                 const row = resultBody.insertRow();
@@ -502,16 +345,11 @@
             }
 
             const displayResults = data.slice(0, 500);
-<<<<<<< HEAD
             displayResults.forEach((item, index) => {
-=======
-            displayResults.forEach((row, index) => {
->>>>>>> 15b4aceefd526650001e83b755f4ac3ffedf467d
                 const newRow = resultBody.insertRow();
                 const rowBgClass = index % 2 === 1 ? 'bg-indigo-50' : 'bg-white';
                 newRow.className = `${rowBgClass} transition-colors duration-150 hover:bg-indigo-200`;
 
-<<<<<<< HEAD
                 const drugNameCell = newRow.insertCell(0);
                 drugNameCell.setAttribute('data-label', '品名');
                 drugNameCell.classList.add("px-2", "py-2", "text-sm", "text-gray-900", "relative");
@@ -519,16 +357,6 @@
                 let labelsHtml = '';
                 const hColumnValue = (item.isGeneric || '').trim();
                 const iColumnValue = (item.isBasicDrug || '').trim();
-=======
-                // 品名 (F列): text-sm
-                const drugNameCell = newRow.insertCell(0);
-                drugNameCell.setAttribute('data-label', '品名');
-                drugNameCell.classList.add("px-2", "py-2", "text-sm", "text-gray-900");
-                
-                let labelsHtml = '';
-                const hColumnValue = (row[7] || '').trim(); // H列: 後発品・長期収載品
-                const iColumnValue = (row[8] || '').trim(); // I列: 基礎的医薬品
->>>>>>> 15b4aceefd526650001e83b755f4ac3ffedf467d
 
                 const labels = [];
                 if (hColumnValue === '後発品') {
@@ -542,7 +370,6 @@
                     labelsHtml = `<div class="vertical-labels-container">${labels.join('')}</div>`;
                 }
 
-<<<<<<< HEAD
                 const drugName = item.productName;
                 const drugNameForHiyari = encodeURIComponent(drugName || "");
 
@@ -601,61 +428,10 @@
 
                 const volumeCell = newRow.insertCell(4);
                 volumeCell.textContent = item.shipmentVolumeStatus || "";
-=======
-                const drugName = row[5]; // F列
-                const yjCode = row[4]; // E列
-                const pmdaLinkUrl = `https://www.pmda.go.jp/PmdaSearch/rdSearch/02/${yjCode}?user=1`;
-                
-                drugNameCell.innerHTML = `<div class="flex items-start">${labelsHtml}<a href="${pmdaLinkUrl}" target="_blank" class="text-indigo-600 font-semibold hover:underline truncate-lines">${drugName || ""}</a></div>`;
-                
-                // 成分名 (C列): text-sm
-                const ingredientNameCell = newRow.insertCell(1);
-                ingredientNameCell.setAttribute('data-label', '成分名');
-                ingredientNameCell.classList.add("px-2", "py-2", "text-sm", "text-gray-900", "truncate-lines");
-                const ingredientName = row[2] || "";
-                
-                if (ingredientName) {
-                    ingredientNameCell.innerHTML = `<a href="#" onclick="handleIngredientClick('${ingredientName.replace(/'/g, "\\'")}')" class="text-indigo-600 font-semibold hover:underline">${ingredientName}</a>`;
-                } else {
-                    ingredientNameCell.textContent = ingredientName; // 元のテキストに戻し、🔵は別途追加
-                }
-                
-                // ✅ 変更: 出荷状況 (L列): renderStatusButtonの結果をリンクで囲む
-                const statusCell = newRow.insertCell(2);
-                statusCell.setAttribute('data-label', '出荷状況');
-                // tight-cellはpaddingの調整に使用
-                statusCell.classList.add("tight-cell", "py-2", "text-gray-900", "text-left"); 
-                
-                const statusValue = (row[statusIndex] || '').trim();
-                const statusButtonHtml = renderStatusButton(statusValue);
-                
-                if (yjCode) {
-                    // YJコードへのリンクURLを設定
-                    const yjCodeLinkUrl = `./yjcode.html?yjcode=${yjCode}`;
-                    
-                    // ボタンHTML全体をハイパーリンクで囲む
-                    // `flex justify-center`を追加して、ボタンをセル内で中央揃えにする
-                    statusCell.innerHTML = `<div class="flex justify-center"><a href="${yjCodeLinkUrl}" target="_blank" class="block text-indigo-600 hover:no-underline">${statusButtonHtml}</a></div>`;
-                } else {
-                    // YJコードがない場合はボタンのみ表示 (中央揃え)
-                    statusCell.innerHTML = `<div class="flex justify-center">${statusButtonHtml}</div>`;
-                }
-                
-                // 制限理由 (N列): text-xs
-                const reasonCell = newRow.insertCell(3);
-                reasonCell.textContent = row[13] || "";
-                reasonCell.setAttribute('data-label', '制限理由');
-                reasonCell.classList.add("px-2", "py-2", "text-xs", "text-gray-900", "truncate-lines");
-
-                // 出荷量状況 (Q列): text-xs
-                const volumeCell = newRow.insertCell(4);
-                volumeCell.textContent = row[16] || "";
->>>>>>> 15b4aceefd526650001e83b755f4ac3ffedf467d
                 volumeCell.setAttribute('data-label', '出荷量状況');
                 volumeCell.classList.add("px-2", "py-2", "text-xs", "text-gray-900");
             });
         }
-<<<<<<< HEAD
 
         function toggleDropdown(event) {
             event.stopPropagation();
@@ -673,10 +449,6 @@
             });
         }
         
-=======
-        
-        // ソート関数、イベントリスナー、window.onload は変更なし
->>>>>>> 15b4aceefd526650001e83b755f4ac3ffedf467d
         function sortResults(key) {
             if (filteredResults.length === 0) {
                 showMessage("ソートするデータがありません。", "info");
@@ -686,7 +458,6 @@
             const newDirection = sortStates[key] === 'asc' ? 'desc' : 'asc';
             sortStates[key] = newDirection;
             document.getElementById(`sort-${key}-icon`).textContent = newDirection === 'asc' ? '▲' : '▼';
-<<<<<<< HEAD
             
             filteredResults.sort((a, b) => {
                 const aValue = (a.shipmentStatus || '').trim();
@@ -695,14 +466,6 @@
                 return newDirection === 'asc' ? compare : -compare;
             });
 
-=======
-            filteredResults.sort((a, b) => {
-                const aValue = (a[11] || '').trim();
-                const bValue = (b[11] || '').trim();
-                const compare = aValue.localeCompare(bValue, 'ja', { sensitivity: 'base' });
-                return newDirection === 'asc' ? compare : -compare;
-            });
->>>>>>> 15b4aceefd526650001e83b755f4ac3ffedf467d
             renderTable(filteredResults);
             showMessage(`「出荷状況」を${newDirection === 'asc' ? '昇順' : '降順'}でソートしました。`, "success");
             hideMessage(2000);
@@ -743,7 +506,6 @@
         }
 
         window.onload = function() {
-<<<<<<< HEAD
             attachSearchListeners();
             window.addEventListener('click', closeAllDropdowns);
 
@@ -775,31 +537,10 @@
                         hideMessage(3000);
                     } else {
                         showMessage(`データの取得に失敗しました。ステータスコード: ${response.status}`, 'error');
-=======
-            const spreadsheetId = '1yhDbdCbnmDoXKRSj_CuLgKkIH2ohK1LD';
-            const exportUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=xlsx`;
-
-            async function fetchSpreadsheetData() {
-                showMessage('共有スプレッドシートからデータを読み込み中です...', 'info');
-                
-                try {
-                    const response = await fetch(exportUrl);
-                    if (response.ok) {
-                        const data = await response.arrayBuffer();
-                        processExcelData(new Uint8Array(data));
-                        renderTable([]);
-                        tableContainer.classList.add('hidden'); 
-                        showMessage("データの読み込みが完了しました。検索欄に入力すると自動で絞り込みが開始されます。", "success");
-                        hideMessage(2000);
-                    } else {
-                        showMessage(`データの取得に失敗しました。ステータスコード: ${response.status}`, 'error');
-                        hideMessage(2000);
->>>>>>> 15b4aceefd526650001e83b755f4ac3ffedf467d
                     }
                 } catch (error) {
                     console.error('データの取得に失敗しました:', error);
                     showMessage('共有スプレッドシートからのデータの取得中にエラーが発生しました。', 'error');
-<<<<<<< HEAD
                 }
             }
 
@@ -828,15 +569,3 @@
     </script>
 </body>
 </html>
-=======
-                    hideMessage(2000);
-                }
-            }
-            
-            attachSearchListeners();
-            fetchSpreadsheetData();
-        };
-    </script>
-</body>
-</html>
->>>>>>> 15b4aceefd526650001e83b755f4ac3ffedf467d
