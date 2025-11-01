@@ -28,11 +28,11 @@
                 <span class="sm:hidden">医薬品 出荷状況</span>
             </h2>
             <div class="flex items-center space-x-2">
-                <a href="./update.html" target="_blank" class="bg-blue-500 text-white hover:bg-blue-600 transition duration-150 ease-in-out py-1 px-3 rounded-md shadow-sm font-medium whitespace-nowrap text-sm sm:text-base">
+                <a href="./update.html" target="_blank" rel="noopener noreferrer" class="bg-blue-500 text-white hover:bg-blue-600 transition duration-150 ease-in-out py-1 px-3 rounded-md shadow-sm font-medium whitespace-nowrap text-sm sm:text-base">
                     <span class="sm:hidden">更新日</span>
                     <span class="hidden sm:inline">情報更新日検索</span>
                 </a>
-                <a href="./readme.html" target="_blank" class="bg-indigo-500 text-white hover:bg-indigo-600 transition duration-150 ease-in-out py-1 px-3 rounded-md shadow-sm font-medium whitespace-nowrap text-sm sm:text-base">
+                <a href="./readme.html" target="_blank" rel="noopener noreferrer" class="bg-indigo-500 text-white hover:bg-indigo-600 transition duration-150 ease-in-out py-1 px-3 rounded-md shadow-sm font-medium whitespace-nowrap text-sm sm:text-base">
                     使い方
                 </a>
             </div>
@@ -98,7 +98,7 @@
         
         <div class="mt-8 text-center text-gray-500 text-sm">
             <p>ご意見・ご要望は製作者までお寄せください。</p>
-            <p>ツイッター: <a href="https://x.com/oshigoto_twitte" target="_blank" class="text-indigo-500 hover:underline">@oshigoto_twitte</a></p>
+            <p>ツイッター: <a href="https://x.com/oshigoto_twitte" target="_blank" rel="noopener noreferrer" class="text-indigo-500 hover:underline">@oshigoto_twitte</a></p>
         </div>
     </div>
 
@@ -334,7 +334,7 @@
             }
 
             const url = `${hiyariBaseUrl}?${type}=${encodeURIComponent(finalName)}`;
-            window.open(url, '_blank');
+            window.open(url, '_blank', 'noopener,noreferrer');
         }
 
         function renderTable(data) {
@@ -416,18 +416,21 @@
                     const pmdaLink = document.createElement('a');
                     pmdaLink.href = pmdaLinkUrl;
                     pmdaLink.target = '_blank';
+                    pmdaLink.rel = 'noopener noreferrer';
                     pmdaLink.className = "block px-3 py-2 text-sm text-gray-800 hover:bg-indigo-100 whitespace-nowrap";
                     pmdaLink.textContent = '医薬品情報';
 
                     const yjCodeLink = document.createElement('a');
                     yjCodeLink.href = yjCodeLinkUrl;
                     yjCodeLink.target = '_blank';
+                    yjCodeLink.rel = 'noopener noreferrer';
                     yjCodeLink.className = "block px-3 py-2 text-sm text-gray-800 hover:bg-indigo-100 whitespace-nowrap";
                     yjCodeLink.textContent = '代替薬検索';
 
                     const hiyariLink = document.createElement('a');
 hiyariLink.href = hiyariLinkUrl;
                     hiyariLink.target = '_blank';
+                    hiyariLink.rel = 'noopener noreferrer';
                     hiyariLink.className = "block px-3 py-2 text-sm text-gray-800 hover:bg-indigo-100 whitespace-nowrap";
                     hiyariLink.textContent = 'ヒヤリハット検索';
 
