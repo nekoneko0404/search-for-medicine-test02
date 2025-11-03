@@ -64,7 +64,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const reports = xmlDoc.querySelectorAll('PHARMACY_REPORT');
             if (reports.length === 0) {
-                incidentList.innerHTML = '';
                 const p = document.createElement('p');
                 p.textContent = '関連する事例は見つかりませんでした。';
                 incidentList.appendChild(p);
@@ -77,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error('Fetching incidents failed:', error);
-            incidentList.innerHTML = '';
+            incidentList.innerHTML = ''; // Clear previous content
             const p = document.createElement('p');
             p.textContent = `事例の読み込みに失敗しました. ${error.message}`;
             incidentList.appendChild(p);
@@ -120,7 +119,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function displayIncidents(incidents) {
-        incidentList.innerHTML = '';
         if (incidents.length === 0 && currentlyDisplayedCount === 0) {
             const p = document.createElement('p');
             p.textContent = '関連する事例は見つかりませんでした。';
@@ -157,7 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const date = document.createElement('p');
             date.className = 'text-sm text-gray-500 text-right mb-3';
-            date.textContent = `発生年月: ${incident.year}年${incident.month}`;
+            date.textContent = `発生年月: ${incident.year}年${incident.month}`
             card.appendChild(date);
 
             const contentP = createParagraph('事例の詳細:', incident.content);
@@ -232,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 displayValue = mappedValue;
                 if (text && text.trim() !== '' && mappedValue !== text.trim() && selector.includes('TEXT')) {
-                    displayValue = `${mappedValue} ${text.trim()}`;
+                    displayValue = `${mappedValue} ${text.trim()}`
                 }
                 if (displayValue) displayValues.push(displayValue);
             });
@@ -264,9 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
         searchKeywordInput.value = '';
         filterWordInput.value = '';
         allIncidents = [];
-        while (incidentList.firstChild) {
-            incidentList.removeChild(incidentList.firstChild);
-        }
+        incidentList.innerHTML = '';
         searchTitle.textContent = 'ヒヤリ・ハット事例';
         loadMoreButton.style.display = 'none';
     });
@@ -277,9 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const j = Math.floor(Math.random() * (i + 1));
             [allIncidents[i], allIncidents[j]] = [allIncidents[j], allIncidents[i]];
         }
-        while (incidentList.firstChild) {
-            incidentList.removeChild(incidentList.firstChild);
-        }
+        incidentList.innerHTML = '';
         currentlyDisplayedCount = 0;
         searchTitle.textContent = 'ランダムに50件の事例を表示';
         displayNextBatch(); // Display first batch of shuffled

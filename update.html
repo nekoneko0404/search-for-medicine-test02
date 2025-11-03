@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>【Kusuri Compass】情報更新日検索</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.16"></script>
+    <script src="https://unpkg.com/@e965/xlsx@0.20.3/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght400;700&display=swap">
     <link rel="stylesheet" href="unify.css">
@@ -38,7 +38,6 @@
         </div>
 
         <div class="flex flex-col lg:flex-row gap-4 mb-6">
-            <!-- 出荷状況フィルター -->
             <div class="bg-white p-4 rounded-lg shadow-md flex-grow">
                 <h3 class="font-semibold text-gray-700 mb-2 text-base">出荷状況:</h3>
                 <div id="status-filters" class="flex flex-wrap gap-x-4 gap-y-2 text-sm">
@@ -154,23 +153,17 @@
 
         function renderStatusButton(status) {
             const trimmedStatus = (status || "").trim();
-            const span = document.createElement('span');
-            span.className = "px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap inline-block transition-colors duration-150";
-
+            let baseClass = "px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap inline-block transition-colors duration-150";
+            
             if (trimmedStatus.includes("通常出荷") || trimmedStatus.includes("通")) {
-                span.classList.add('bg-indigo-500', 'text-white', 'hover:bg-indigo-600');
-                span.textContent = '通常出荷';
+                return `<span class="${baseClass} bg-indigo-500 text-white hover:bg-indigo-600">通常出荷</span>`; 
             } else if (trimmedStatus.includes("限定出荷") || trimmedStatus.includes("出荷制限") || trimmedStatus.includes("限") || trimmedStatus.includes("制")) {
-                span.classList.add('bg-yellow-400', 'text-gray-800', 'hover:bg-yellow-500');
-                span.textContent = '限定出荷';
+                return `<span class="${baseClass} bg-yellow-400 text-gray-800 hover:bg-yellow-500">限定出荷</span>`;
             } else if (trimmedStatus.includes("供給停止") || trimmedStatus.includes("停止") || trimmedStatus.includes("停")) {
-                span.classList.add('bg-gray-700', 'text-white', 'hover:bg-gray-800');
-                span.textContent = '供給停止';
+                return `<span class="${baseClass} bg-gray-700 text-white hover:bg-gray-800">供給停止</span>`;
             } else {
-                span.classList.add('bg-gray-200', 'text-gray-800', 'hover:bg-gray-300');
-                span.textContent = trimmedStatus || "不明";
+                return `<span class="${baseClass} bg-gray-200 text-gray-800 hover:bg-gray-300">${trimmedStatus || "不明"}</span>`; 
             }
-            return span;
         }
 
         async function fetchAndProcessExcelData() {
@@ -178,7 +171,6 @@
             const googleDriveUrl = `https://docs.google.com/spreadsheets/d/${fileId}/export?format=xlsx`;
 
             try {
-                loadingIndicator.classList.remove('hidden');
                 const response = await fetch(googleDriveUrl, { cache: "no-cache" });
                 if (!response.ok) {
                     const errorText = await response.text();
@@ -232,8 +224,6 @@
                 console.error(`データ取得エラー: ${error}`);
                 showMessage(`データの取得に失敗しました。詳細: ${error.message}`, true);
                 return [];
-            } finally {
-                 loadingIndicator.classList.add('hidden');
             }
         }
         
@@ -276,7 +266,7 @@
             hideMessage(); 
             
             const rawSearchTerm = document.getElementById('searchInput').value.trim();
-            const searchTerms = rawSearchTerm.split(/[\s　]+/).map(normalizeString).filter(term => term.length > 0);
+            const searchTerms = rawSearchTerm.split(/[　 ]+/).map(normalizeString).filter(term => term.length > 0);
             
             const selectedStatuses = Array.from(document.querySelectorAll('#status-filters input:checked')).map(cb => cb.dataset.status);
             const selectedDays = document.querySelector('#date-filters input:checked')?.dataset.days || 'all';
@@ -348,7 +338,7 @@
             }
             
             const tableContainer = document.createElement('div');
-            tableContainer.className = 'table-container rounded-lg shadow-md border border-gray-200 hidden md:block';
+            tableContainer.className = 'shadow hidden md:block';
             const table = document.createElement('table');
             table.id = 'resultTable';
             table.className = 'min-w-full divide-y divide-gray-200 table-fixed';
@@ -356,10 +346,9 @@
             const getSortIcon = (column) => currentSortColumn === column ? (currentSortDirection === 'asc' ? '▲' : '▼') : '↕';
             const getSortClass = (column) => currentSortColumn === column ? 'text-indigo-600 font-bold' : 'text-gray-700';
 
-            const thead = table.createTHead();
-            thead.className = "bg-indigo-100 sticky top-0";
-            const headerRow = thead.insertRow();
-            headerRow.innerHTML = `
+            table.innerHTML = `
+                <thead class="bg-indigo-100 sticky top-0">
+                    <tr>
                         <th id="sort-productName" class="px-2 py-2 text-left text-xs font-semibold ${getSortClass('productName')} uppercase tracking-wider whitespace-nowrap lg:w-[20%] hover:bg-indigo-200 transition-colors duration-150">
                             <div class="flex items-center justify-start"><span>品名</span><button class="ml-1 text-indigo-600 hover:text-indigo-800 transition-colors duration-150"><span class="sort-icon">${getSortIcon('productName')}</span></button></div>
                         </th>
@@ -372,51 +361,30 @@
                         <th id="sort-updateDate" class="px-2 py-2 text-left text-xs font-semibold ${getSortClass('updateDate')} uppercase tracking-wider whitespace-nowrap lg:w-[10%] hover:bg-indigo-200 transition-colors duration-150">
                             <div class="flex items-center justify-start"><span>更新日</span><button class="ml-1 text-indigo-600 hover:text-indigo-800 transition-colors duration-150"><span class="sort-icon">${getSortIcon('updateDate')}</span></button></div>
                         </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200" id="resultTableBody"></tbody>
             `;
-            
-            const tbody = table.createTBody();
-            tbody.className = 'bg-white divide-y divide-gray-200';
+            const tbody = table.querySelector('tbody');
             
             limitedResults.forEach((item, index) => {
                 const row = tbody.insertRow();
                 const rowBgClass = index % 2 === 1 ? 'bg-indigo-50' : 'bg-white';
                 row.className = `${rowBgClass} transition-colors duration-150 hover:bg-indigo-200`;
-                
-                const productNameCell = row.insertCell();
-                productNameCell.className = 'px-2 py-2 text-sm text-gray-900 font-semibold';
-                productNameCell.textContent = item.productName || '-';
-
-                const ingredientNameCell = row.insertCell();
-                ingredientNameCell.className = 'px-2 py-2 text-sm text-gray-900';
-                const ingredientLink = document.createElement('span');
-                ingredientLink.className = 'ingredient-link cursor-pointer text-indigo-600 hover:text-indigo-800 hover:underline transition-colors';
-                ingredientLink.dataset.ingredient = item.ingredientName || '';
-                ingredientLink.textContent = item.ingredientName || '-';
-                ingredientNameCell.appendChild(ingredientLink);
-
-                const statusCell = row.insertCell();
-                statusCell.className = 'px-1 py-2 text-sm text-gray-900 text-left';
-                statusCell.appendChild(renderStatusButton(item.shipmentStatus));
-
-                const reasonCell = row.insertCell();
-                reasonCell.className = 'px-2 py-2 text-xs text-gray-900';
-                reasonCell.textContent = item.reasonForLimitation || '-';
-
-                const prospectCell = row.insertCell();
-                prospectCell.className = 'px-2 py-2 text-xs text-gray-900';
-                prospectCell.textContent = item.resolutionProspect || '-';
-
-                const expectedDateCell = row.insertCell();
-                expectedDateCell.className = 'px-2 py-2 text-xs text-gray-900';
-                expectedDateCell.textContent = formatExpectedDate(item.expectedDate);
-
-                const volumeCell = row.insertCell();
-                volumeCell.className = 'px-2 py-2 text-xs text-gray-900';
-                volumeCell.textContent = item.shipmentVolumeStatus || '-';
-
-                const updateDateCell = row.insertCell();
-                updateDateCell.className = 'px-2 py-2 text-xs text-gray-900 whitespace-nowrap';
-                updateDateCell.textContent = formatDate(item.updateDateObj);
+                row.innerHTML = `
+                    <td class="px-2 py-2 text-sm text-gray-900 font-semibold">${item.productName || '-'}</td>
+                    <td class="px-2 py-2 text-sm text-gray-900">
+                        <span class="ingredient-link cursor-pointer text-indigo-600 hover:text-indigo-800 hover:underline transition-colors" data-ingredient="${item.ingredientName || ''}">
+                            ${item.ingredientName || '-'}
+                        </span>
+                    </td>
+                    <td class="px-1 py-2 text-sm text-gray-900 text-left">${renderStatusButton(item.shipmentStatus)}</td>
+                    <td class="px-2 py-2 text-xs text-gray-900">${item.reasonForLimitation || '-'}</td>
+                    <td class="px-2 py-2 text-xs text-gray-900">${item.resolutionProspect || '-'}</td>
+                    <td class="px-2 py-2 text-xs text-gray-900">${formatExpectedDate(item.expectedDate)}</td>
+                    <td class="px-2 py-2 text-xs text-gray-900">${item.shipmentVolumeStatus || '-'}</td>
+                    <td class="px-2 py-2 text-xs text-gray-900 whitespace-nowrap">${formatDate(item.updateDateObj)}</td>
+                `;
             });
             tableContainer.appendChild(table);
             container.appendChild(tableContainer);
@@ -429,50 +397,24 @@
             limitedResults.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'bg-white rounded-lg shadow-md border border-gray-200 p-4';
-                
-                const header = document.createElement('div');
-                header.className = 'flex items-start justify-between mb-2';
-                const title = document.createElement('h3');
-                title.className = 'text-base font-semibold text-gray-900 leading-tight pr-2';
-                title.textContent = item.productName || '-';
-                header.appendChild(title);
-                header.appendChild(renderStatusButton(item.shipmentStatus));
-
-                const body = document.createElement('div');
-                body.className = 'text-sm space-y-1 text-gray-700';
-
-                const createCardRow = (label, value, isLink = false, linkClass = '', dataset = {}) => {
-                    const row = document.createElement('div');
-                    row.className = 'flex items-center';
-                    const strong = document.createElement('strong');
-                    strong.className = 'w-24 font-medium text-gray-600';
-                    strong.textContent = label;
-                    row.appendChild(strong);
-                    if (isLink) {
-                        const link = document.createElement('span');
-                        link.className = linkClass;
-                        link.textContent = value;
-                        Object.keys(dataset).forEach(key => {
-                            link.dataset[key] = dataset[key];
-                        });
-                        row.appendChild(link);
-                    } else {
-                        const span = document.createElement('span');
-                        span.textContent = value;
-                        row.appendChild(span);
-                    }
-                    return row;
-                };
-
-                body.appendChild(createCardRow('成分名:', item.ingredientName || '-', true, 'ingredient-link cursor-pointer text-indigo-600 hover:text-indigo-800 hover:underline transition-colors', { ingredient: item.ingredientName || '' }));
-                body.appendChild(createCardRow('制限理由:', item.reasonForLimitation || '-'));
-                body.appendChild(createCardRow('解消見込み:', item.resolutionProspect || '-'));
-                body.appendChild(createCardRow('見込み時期:', formatExpectedDate(item.expectedDate)));
-                body.appendChild(createCardRow('出荷量:', item.shipmentVolumeStatus || '-'));
-                body.appendChild(createCardRow('情報更新日:', formatDate(item.updateDateObj)));
-
-                card.appendChild(header);
-                card.appendChild(body);
+                card.innerHTML = `
+                    <div class="flex items-start justify-between mb-2">
+                        <h3 class="text-base font-semibold text-gray-900 leading-tight pr-2">${item.productName || '-'}</h3>
+                        <div class="flex-shrink-0">${renderStatusButton(item.shipmentStatus)}</div>
+                    </div>
+                    <div class="text-sm space-y-1 text-gray-700">
+                        <div class="flex items-center"><strong class="w-24 font-medium text-gray-600">成分名:</strong>
+                            <span class="ingredient-link cursor-pointer text-indigo-600 hover:text-indigo-800 hover:underline transition-colors" data-ingredient="${item.ingredientName || ''}">
+                                ${item.ingredientName || '-'}
+                            </span>
+                        </div>
+                        <div class="flex items-center"><strong class="w-24 font-medium text-gray-600">制限理由:</strong><span>${item.reasonForLimitation || '-'}</span></div>
+                        <div class="flex items-center"><strong class="w-24 font-medium text-gray-600">解消見込み:</strong><span>${item.resolutionProspect || '-'}</span></div>
+                        <div class="flex items-center"><strong class="w-24 font-medium text-gray-600">見込み時期:</strong><span>${formatExpectedDate(item.expectedDate)}</span></div>
+                        <div class="flex items-center"><strong class="w-24 font-medium text-gray-600">出荷量:</strong><span>${item.shipmentVolumeStatus || '-'}</span></div>
+                        <div class="flex items-center"><strong class="w-24 font-medium text-gray-600">情報更新日:</strong><span>${formatDate(item.updateDateObj)}</span></div>
+                    </div>
+                `;
                 cardListContainer.appendChild(card);
             });
             container.appendChild(cardListContainer);
@@ -490,6 +432,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            loadingIndicator.classList.remove('hidden');
             localforage.getItem('excelCache').then(async (cachedData) => {
                 let sourceData;
                 if (cachedData) {
@@ -528,6 +471,8 @@
                     document.querySelector('#date-filters input[data-days="3"]').checked = true;
                     performSearch();
                 }
+            }).finally(() => {
+                loadingIndicator.style.display = 'none';
             });
 
             const searchInput = document.getElementById('searchInput');
