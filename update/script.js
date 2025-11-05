@@ -1,74 +1,4 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>【Kusuri Compass】情報更新日検索</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.16"></script>
-    <script src="https://unpkg.com/@e965/xlsx@0.20.3/dist/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght400;700&display=swap">
-    <link rel="stylesheet" href="unify.css">
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CT2JQPSMPL"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-    
-      gtag('config', 'G-CT2JQPSMPL');
-    </script>
-</head>
-<body class="bg-gray-200 p-4 sm:p-8 flex flex-col items-center min-h-screen">
 
-    <div class="page-wrapper">
-        <div class="page-header">
-            <h2 class="page-title flex items-center space-x-2">
-                <img src="images/KusuriCompass.png" alt="Kusuri Compass Icon" class="h-8 w-8 sm:h-10 sm:w-10">
-               <span>【Kusuri Compass】情報更新日検索</span>
-            </h2>
-        </div>
-        <span id="dataDate" class="text-gray-500 text-xs whitespace-nowrap mb-4 block text-center"></span>
-        
-        <div class="flex flex-col sm:flex-row items-center justify-between sm:space-x-4 space-y-2 sm:space-y-0 mb-6">
-            <input type="text" id="searchInput" placeholder="品名、成分名で検索 (Enterまたはボタンで実行)" class="unified-input w-full">
-            <button id="searchButton" class="unified-button">
-                検索
-            </button>
-        </div>
-
-        <div class="flex flex-col lg:flex-row gap-4 mb-6">
-            <div class="bg-white p-4 rounded-lg shadow-md flex-grow">
-                <h3 class="font-semibold text-gray-700 mb-2 text-base">出荷状況:</h3>
-                <div id="status-filters" class="flex flex-wrap gap-x-4 gap-y-2 text-sm">
-                    <label class="flex items-center"><input type="checkbox" data-status="通常出荷" class="form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out" checked><span class="ml-1.5 text-gray-900">通常出荷</span></label>
-                    <label class="flex items-center"><input type="checkbox" data-status="出荷制限" class="form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out" checked><span class="ml-1.5 text-gray-900">限定出荷</span></label>
-                    <label class="flex items-center"><input type="checkbox" data-status="供給停止" class="form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out" checked><span class="ml-1.5 text-gray-900">供給停止</span></label>
-                </div>
-            </div>
-            <!-- 情報更新日フィルター -->
-            <div class="bg-white p-4 rounded-lg shadow-md flex-grow">
-                <h3 class="font-semibold text-gray-700 mb-2 text-base">情報更新日:</h3>
-                <div id="date-filters" class="flex flex-wrap gap-x-4 gap-y-2 text-sm">
-                    <label class="flex items-center"><input type="checkbox" data-days="all" class="form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out" checked><span class="ml-1.5 text-gray-900">すべて</span></label>
-                    <label class="flex items-center"><input type="checkbox" data-days="3" class="form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"><span class="ml-1.5 text-gray-900">3日以内</span></label>
-                    <label class="flex items-center"><input type="checkbox" data-days="7" class="form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"><span class="ml-1.5 text-gray-900">7日以内</span></label>
-                    <label class="flex items-center"><input type="checkbox" data-days="14" class="form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"><span class="ml-1.5 text-gray-900">14日以内</span></label>
-                    <label class="flex items-center"><input type="checkbox" data-days="30" class="form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"><span class="ml-1.5 text-gray-900">1ヶ月以内</span></label>
-                    <label class="flex items-center"><input type="checkbox" data-days="90" class="form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"><span class="ml-1.5 text-gray-900">3ヶ月以内</span></label>
-                </div>
-            </div>
-        </div>
-        <div id="messageBox" class="text-sm sm:text-base text-center p-3 rounded-lg hidden message-box-center w-3/4"></div>
-    </div>
-
-    <div id="loadingIndicator" class="loading-container hidden">
-        <div class="spinner"></div>
-    </div>
-    
-    <div id="resultsContainer" class="w-full max-w-7xl mt-8"></div>
-
-    <script>
         let data = [];
         const loadingIndicator = document.getElementById('loadingIndicator');
         const messageBox = document.getElementById('messageBox');
@@ -162,7 +92,8 @@
             } else if (trimmedStatus.includes("供給停止") || trimmedStatus.includes("停止") || trimmedStatus.includes("停")) {
                 return `<span class="${baseClass} bg-gray-700 text-white hover:bg-gray-800">供給停止</span>`;
             } else {
-                return `<span class="${baseClass} bg-gray-200 text-gray-800 hover:bg-gray-300">${trimmedStatus || "不明"}</span>`; 
+                const escapedStatus = (trimmedStatus || "不明").replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+                return `<span class="${baseClass} bg-gray-200 text-gray-800 hover:bg-gray-300">${escapedStatus}</span>`; 
             }
         }
 
@@ -324,6 +255,16 @@
             container.innerHTML = '';
             loadingIndicator.classList.add('hidden');
 
+            const escapeHTML = (str) => {
+                if (!str) return '';
+                return String(str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            };
+
             const limitedResults = results.slice(0, MAX_RESULTS); 
 
             if (limitedResults.length === 0) {
@@ -372,18 +313,18 @@
                 const rowBgClass = index % 2 === 1 ? 'bg-indigo-50' : 'bg-white';
                 row.className = `${rowBgClass} transition-colors duration-150 hover:bg-indigo-200`;
                 row.innerHTML = `
-                    <td class="px-2 py-2 text-sm text-gray-900 font-semibold">${item.productName || '-'}</td>
+                    <td class="px-2 py-2 text-sm text-gray-900 font-semibold">${escapeHTML(item.productName) || '-'}</td>
                     <td class="px-2 py-2 text-sm text-gray-900">
-                        <span class="ingredient-link cursor-pointer text-indigo-600 hover:text-indigo-800 hover:underline transition-colors" data-ingredient="${item.ingredientName || ''}">
-                            ${item.ingredientName || '-'}
+                        <span class="ingredient-link cursor-pointer text-indigo-600 hover:text-indigo-800 hover:underline transition-colors" data-ingredient="${escapeHTML(item.ingredientName || '')}">
+                            ${escapeHTML(item.ingredientName) || '-'}
                         </span>
                     </td>
                     <td class="px-1 py-2 text-sm text-gray-900 text-left">${renderStatusButton(item.shipmentStatus)}</td>
-                    <td class="px-2 py-2 text-xs text-gray-900">${item.reasonForLimitation || '-'}</td>
-                    <td class="px-2 py-2 text-xs text-gray-900">${item.resolutionProspect || '-'}</td>
-                    <td class="px-2 py-2 text-xs text-gray-900">${formatExpectedDate(item.expectedDate)}</td>
-                    <td class="px-2 py-2 text-xs text-gray-900">${item.shipmentVolumeStatus || '-'}</td>
-                    <td class="px-2 py-2 text-xs text-gray-900 whitespace-nowrap">${formatDate(item.updateDateObj)}</td>
+                    <td class="px-2 py-2 text-xs text-gray-900">${escapeHTML(item.reasonForLimitation) || '-'}</td>
+                    <td class="px-2 py-2 text-xs text-gray-900">${escapeHTML(item.resolutionProspect) || '-'}</td>
+                    <td class="px-2 py-2 text-xs text-gray-900">${escapeHTML(formatExpectedDate(item.expectedDate))}</td>
+                    <td class="px-2 py-2 text-xs text-gray-900">${escapeHTML(item.shipmentVolumeStatus) || '-'}</td>
+                    <td class="px-2 py-2 text-xs text-gray-900 whitespace-nowrap">${formatDate(item.updateDateObj) || '-'}</td>
                 `;
             });
             tableContainer.appendChild(table);
@@ -399,20 +340,20 @@
                 card.className = 'bg-white rounded-lg shadow-md border border-gray-200 p-4';
                 card.innerHTML = `
                     <div class="flex items-start justify-between mb-2">
-                        <h3 class="text-base font-semibold text-gray-900 leading-tight pr-2">${item.productName || '-'}</h3>
+                        <h3 class="text-base font-semibold text-gray-900 leading-tight pr-2">${escapeHTML(item.productName) || '-'}</h3>
                         <div class="flex-shrink-0">${renderStatusButton(item.shipmentStatus)}</div>
                     </div>
                     <div class="text-sm space-y-1 text-gray-700">
                         <div class="flex items-center"><strong class="w-24 font-medium text-gray-600">成分名:</strong>
-                            <span class="ingredient-link cursor-pointer text-indigo-600 hover:text-indigo-800 hover:underline transition-colors" data-ingredient="${item.ingredientName || ''}">
-                                ${item.ingredientName || '-'}
+                            <span class="ingredient-link cursor-pointer text-indigo-600 hover:text-indigo-800 hover:underline transition-colors" data-ingredient="${escapeHTML(item.ingredientName || '')}">
+                                ${escapeHTML(item.ingredientName) || '-'}
                             </span>
                         </div>
-                        <div class="flex items-center"><strong class="w-24 font-medium text-gray-600">制限理由:</strong><span>${item.reasonForLimitation || '-'}</span></div>
-                        <div class="flex items-center"><strong class="w-24 font-medium text-gray-600">解消見込み:</strong><span>${item.resolutionProspect || '-'}</span></div>
-                        <div class="flex items-center"><strong class="w-24 font-medium text-gray-600">見込み時期:</strong><span>${formatExpectedDate(item.expectedDate)}</span></div>
-                        <div class="flex items-center"><strong class="w-24 font-medium text-gray-600">出荷量:</strong><span>${item.shipmentVolumeStatus || '-'}</span></div>
-                        <div class="flex items-center"><strong class="w-24 font-medium text-gray-600">情報更新日:</strong><span>${formatDate(item.updateDateObj)}</span></div>
+                        <div class="flex items-center"><strong class="w-24 font-medium text-gray-600">制限理由:</strong><span>${escapeHTML(item.reasonForLimitation) || '-'}</span></div>
+                        <div class="flex items-center"><strong class="w-24 font-medium text-gray-600">解消見込み:</strong><span>${escapeHTML(item.resolutionProspect) || '-'}</span></div>
+                        <div class="flex items-center"><strong class="w-24 font-medium text-gray-600">見込み時期:</strong><span>${escapeHTML(formatExpectedDate(item.expectedDate))}</span></div>
+                        <div class="flex items-center"><strong class="w-24 font-medium text-gray-600">出荷量:</strong><span>${escapeHTML(item.shipmentVolumeStatus) || '-'}</span></div>
+                        <div class="flex items-center"><strong class="w-24 font-medium text-gray-600">情報更新日:</strong><span>${escapeHTML(formatDate(item.updateDateObj))}</span></div>
                     </div>
                 `;
                 cardListContainer.appendChild(card);
@@ -429,6 +370,67 @@
                     }
                 });
             });
+        }
+
+        async function fetchAndProcessExcelData() {
+            const fileId = '1yhDbdCbnmDoXKRSj_CuLgKkIH2ohK1LD';
+            const googleDriveUrl = `https://docs.google.com/spreadsheets/d/${fileId}/export?format=xlsx`;
+
+            try {
+                const response = await fetch(googleDriveUrl, { cache: "no-cache" });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Fetch Error Body:', errorText);
+                    throw new Error(`HTTP error! status: ${response.status} ${response.statusText}`);
+                }
+                
+                const arrayBuffer = await response.arrayBuffer();
+                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                
+                const jsonDataWithStrings = XLSX.utils.sheet_to_json(worksheet, { header: 1, range: 1, defval: "" });
+                const jsonDataWithNumbers = XLSX.utils.sheet_to_json(worksheet, { header: 1, range: 1, raw: true, defval: "" });
+
+                if (jsonDataWithStrings.length < 2) return [];
+
+                const dataRowsAsStrings = jsonDataWithStrings.slice(1);
+                const dataRowsAsNumbers = jsonDataWithNumbers.slice(1);
+
+                const mappedData = dataRowsAsStrings.map((row, index) => {
+                    const numberRow = dataRowsAsNumbers[index];
+                    return {
+                        'productName':          row[5],
+                        'ingredientName':       row[2],
+                        'manufacturer':         row[6],
+                        'shipmentStatus':       row[11],
+                        'reasonForLimitation':  row[13],
+                        'resolutionProspect':   row[14],
+                        'expectedDate':         numberRow[15] || row[15],
+                        'shipmentVolumeStatus': row[16],
+                        'yjCode':               row[4],
+                        'standard':             row[3],
+                        'isGeneric':            row[7],
+                        'isBasicDrug':          row[8],
+                        'updateDateSerial':     numberRow[12] || row[12]
+                    };
+                });
+
+                if (mappedData.length > 0) {
+                    const cachePayload = {
+                        timestamp: new Date().getTime(),
+                        data: mappedData
+                    };
+                    localforage.setItem('excelCache', cachePayload).catch(err => {
+                        console.error("Failed to save data to localForage", err);
+                    });
+                }
+                return mappedData;
+
+            } catch (error) {
+                console.error(`データ取得エラー: ${error}`);
+                showMessage(`データの取得に失敗しました。詳細: ${error.message}`, true);
+                return [];
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -501,6 +503,3 @@
                 });
             });
         });
-    </script>
-</body>
-</html>
