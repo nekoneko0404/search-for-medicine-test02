@@ -452,18 +452,6 @@ hiyariLink.href = hiyariLinkUrl;
             attachSearchListeners();
             window.addEventListener('click', closeAllDropdowns);
 
-            document.getElementById('reload-data').addEventListener('click', () => {
-                localforage.removeItem('excelCache').then(() => {
-                    showMessage('キャッシュをクリアしました。データを再読み込みします。', 'info');
-                    hideMessage(2000);
-                    fetchSpreadsheetData();
-                }).catch(err => {
-                    console.error("Failed to clear cache", err);
-                    showMessage('キャッシュのクリアに失敗しました。', 'error');
-                    hideMessage(2000);
-                });
-            });
-
             const fileId = '1yhDbdCbnmDoXKRSj_CuLgKkIH2ohK1LD';
             const googleDriveUrl = `https://docs.google.com/spreadsheets/d/${fileId}/export?format=xlsx`;
 

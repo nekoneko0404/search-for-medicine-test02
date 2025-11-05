@@ -441,26 +441,5 @@
                     performSearch();
                 });
             });
-
-            document.getElementById('reload-data').addEventListener('click', () => {
-                localforage.removeItem('excelCache').then(() => {
-                    showMessage('キャッシュをクリアしました。データを再読み込みします。', false);
-                    loadingIndicator.classList.remove('hidden');
-                    fetchAndProcessExcelData().then(sourceData => {
-                        if (sourceData && sourceData.length > 0) {
-                            data = sourceData.map(item => {
-                                item.updateDateObj = excelSerialDateToJSDate(item.updateDateSerial);
-                                return item;
-                            });
-                            performSearch();
-                        }
-                    }).finally(() => {
-                        loadingIndicator.style.display = 'none';
-                    });
-                }).catch(err => {
-                    console.error("Failed to clear cache", err);
-                    showMessage('キャッシュのクリアに失敗しました。', true);
-                });
-            });
         });
     
