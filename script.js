@@ -448,44 +448,43 @@ hiyariLink.href = hiyariLinkUrl;
             document.getElementById('statusStopped').addEventListener('change', searchData);
         }
 
+        async function fetchSpreadsheetData() {
+            showMessage('共有スプレッドシートからデータを読み込み中です...', 'info');
+            try {
+                const fileId = '1yhDbdCbnmDoXKRSj_CuLgKkIH2ohK1LD';
+                const googleDriveUrl = `https://docs.google.com/spreadsheets/d/${fileId}/export?format=xlsx`;
+                const response = await fetch(googleDriveUrl, { cache: "no-cache" });
+                if (response.ok) {
+                    const data = await response.arrayBuffer();
+                    processExcelData(new Uint8Array(data));
+
+                    if (excelData.length > 0) {
+                        const cachePayload = {
+                            timestamp: new Date().getTime(),
+                            data: excelData
+                        };
+                        localforage.setItem('excelCache', cachePayload).catch(err => {
+                            console.error("Failed to save data to localForage", err);
+                        });
+                        showMessage(`${excelData.length} 件のデータを読み込みました。検索を開始できます。`, "success");
+                    } else {
+                        showMessage("データが0件でした。ファイルまたは処理ロジックを確認してください。", "error");
+                    }
+                    renderTable([]);
+                    tableContainer.classList.add('hidden');
+                    hideMessage(3000);
+                } else {
+                    showMessage(`データの取得に失敗しました。ステータスコード: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                console.error('データの取得に失敗しました:', error);
+                showMessage('共有スプレッドシートからのデータの取得中にエラーが発生しました。', 'error');
+            }
+        }
+
         window.onload = function() {
             attachSearchListeners();
             window.addEventListener('click', closeAllDropdowns);
-
-            const fileId = '1yhDbdCbnmDoXKRSj_CuLgKkIH2ohK1LD';
-            const googleDriveUrl = `https://docs.google.com/spreadsheets/d/${fileId}/export?format=xlsx`;
-
-            async function fetchSpreadsheetData() {
-                showMessage('共有スプレッドシートからデータを読み込み中です...', 'info');
-                try {
-                    const response = await fetch(googleDriveUrl, { cache: "no-cache" });
-                    if (response.ok) {
-                        const data = await response.arrayBuffer();
-                        processExcelData(new Uint8Array(data));
-
-                        if (excelData.length > 0) {
-                            const cachePayload = {
-                                timestamp: new Date().getTime(),
-                                data: excelData
-                            };
-                            localforage.setItem('excelCache', cachePayload).catch(err => {
-                                console.error("Failed to save data to localForage", err);
-                            });
-                            showMessage(`${excelData.length} 件のデータを読み込みました。検索を開始できます。`, "success");
-                        } else {
-                            showMessage("データが0件でした。ファイルまたは処理ロジックを確認してください。", "error");
-                        }
-                        renderTable([]);
-                        tableContainer.classList.add('hidden');
-                        hideMessage(3000);
-                    } else {
-                        showMessage(`データの取得に失敗しました。ステータスコード: ${response.status}`, 'error');
-                    }
-                } catch (error) {
-                    console.error('データの取得に失敗しました:', error);
-                    showMessage('共有スプレッドシートからのデータの取得中にエラーが発生しました。', 'error');
-                }
-            }
 
             localforage.getItem('excelCache').then(cachedData => {
                 const fourHours = 4 * 60 * 60 * 1000;
