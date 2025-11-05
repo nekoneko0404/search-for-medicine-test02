@@ -372,6 +372,67 @@
             });
         }
 
+        async function fetchAndProcessExcelData() {
+            const fileId = '1yhDbdCbnmDoXKRSj_CuLgKkIH2ohK1LD';
+            const googleDriveUrl = `https://docs.google.com/spreadsheets/d/${fileId}/export?format=xlsx`;
+
+            try {
+                const response = await fetch(googleDriveUrl, { cache: "no-cache" });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Fetch Error Body:', errorText);
+                    throw new Error(`HTTP error! status: ${response.status} ${response.statusText}`);
+                }
+                
+                const arrayBuffer = await response.arrayBuffer();
+                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                
+                const jsonDataWithStrings = XLSX.utils.sheet_to_json(worksheet, { header: 1, range: 1, defval: "" });
+                const jsonDataWithNumbers = XLSX.utils.sheet_to_json(worksheet, { header: 1, range: 1, raw: true, defval: "" });
+
+                if (jsonDataWithStrings.length < 2) return [];
+
+                const dataRowsAsStrings = jsonDataWithStrings.slice(1);
+                const dataRowsAsNumbers = jsonDataWithNumbers.slice(1);
+
+                const mappedData = dataRowsAsStrings.map((row, index) => {
+                    const numberRow = dataRowsAsNumbers[index];
+                    return {
+                        'productName':          row[5],
+                        'ingredientName':       row[2],
+                        'manufacturer':         row[6],
+                        'shipmentStatus':       row[11],
+                        'reasonForLimitation':  row[13],
+                        'resolutionProspect':   row[14],
+                        'expectedDate':         numberRow[15] || row[15],
+                        'shipmentVolumeStatus': row[16],
+                        'yjCode':               row[4],
+                        'standard':             row[3],
+                        'isGeneric':            row[7],
+                        'isBasicDrug':          row[8],
+                        'updateDateSerial':     numberRow[12] || row[12]
+                    };
+                });
+
+                if (mappedData.length > 0) {
+                    const cachePayload = {
+                        timestamp: new Date().getTime(),
+                        data: mappedData
+                    };
+                    localforage.setItem('excelCache', cachePayload).catch(err => {
+                        console.error("Failed to save data to localForage", err);
+                    });
+                }
+                return mappedData;
+
+            } catch (error) {
+                console.error(`データ取得エラー: ${error}`);
+                showMessage(`データの取得に失敗しました。詳細: ${error.message}`, true);
+                return [];
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             loadingIndicator.classList.remove('hidden');
             localforage.getItem('excelCache').then(async (cachedData) => {
@@ -441,26 +502,4 @@
                     performSearch();
                 });
             });
-
-            document.getElementById('reload-data').addEventListener('click', () => {
-                localforage.removeItem('excelCache').then(() => {
-                    showMessage('キャッシュをクリアしました。データを再読み込みします。', false);
-                    loadingIndicator.classList.remove('hidden');
-                    fetchAndProcessExcelData().then(sourceData => {
-                        if (sourceData && sourceData.length > 0) {
-                            data = sourceData.map(item => {
-                                item.updateDateObj = excelSerialDateToJSDate(item.updateDateSerial);
-                                return item;
-                            });
-                            performSearch();
-                        }
-                    }).finally(() => {
-                        loadingIndicator.style.display = 'none';
-                    });
-                }).catch(err => {
-                    console.error("Failed to clear cache", err);
-                    showMessage('キャッシュのクリアに失敗しました。', true);
-                });
-            });
         });
-    
