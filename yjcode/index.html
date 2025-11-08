@@ -12,7 +12,7 @@
         connect-src 'self' https://docs.google.com https://*.googleusercontent.com https://hiyari-proxy-708146219355.asia-east1.run.app;
     ">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.16" integrity="sha384-hexzD4m33RNzdvbV2ZW2FJcYlGemNPAdBKQsEcc389OUSwlT9xpg4BeEtiCeylHY" crossorigin="anonymous"></script>
-    <script src="https://unpkg.com/@e965/xlsx@0.20.3/dist/xlsx.full.min.js" integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT" crossorigin="anonymous"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js" integrity="sha384-MTDrIlFOzEqpmOxY6UIA/1Zkh0a64UlmJ6R0UrZXqXCPx99siPGi8EmtQjIeCcTH" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght400;700&display=swap">
     <link rel="stylesheet" href="../unify.css">
@@ -90,7 +90,7 @@
             <span id="dataDate" class="text-gray-500 text-xs whitespace-nowrap flex items-end justify-end"></span>
         </div>
 
-        <div id="messageBox" class="mt-4 p-4 rounded-xl text-sm hidden" role="alert"></div>
+        <div id="messageBox" class="text-sm sm:text-base text-center p-3 rounded-lg hidden message-box-center w-3/4" role="alert"></div>
     </div>
 
     <div id="loadingIndicator" class="loading-container hidden">

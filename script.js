@@ -1,7 +1,9 @@
         let excelData = [];
         let filteredResults = [];
         let sortStates = {
-            status: 'asc'
+            status: 'asc',
+            productName: 'asc',
+            ingredientName: 'asc'
         };
         const messageBox = document.getElementById('messageBox');
         const tableContainer = document.getElementById('tableContainer');
@@ -45,27 +47,86 @@
             return input.split(/\s+|　+/).filter(keyword => keyword !== '').map(keyword => normalizeString(keyword));
         }
 
-        function processExcelData(data) {
+        function processCsvData(csvText) {
             try {
-                const workbook = XLSX.read(data, {type: 'array'});
-                const sheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[sheetName];
-                
-                const jsonDataWithStrings = XLSX.utils.sheet_to_json(worksheet, { header: 1, range: 1, defval: "" });
-                const jsonDataWithNumbers = XLSX.utils.sheet_to_json(worksheet, { header: 1, range: 1, raw: true, defval: "" });
-
-                if (jsonDataWithStrings.length < 2) { 
+                const rows = csvText.trim().split('\n');
+                if (rows.length < 2) {
                     excelData = [];
-                    showMessage("Excelファイルに処理できるデータがありません。", "info");
+                    showMessage("CSVファイルに処理できるデータがありません。", "info");
                     hideMessage(2000);
                     return;
                 }
 
-                const dataRowsAsStrings = jsonDataWithStrings.slice(1);
-                const dataRowsAsNumbers = jsonDataWithNumbers.slice(1);
+                const dataRows = rows.slice(1); // Skip header row
 
-                const mappedData = dataRowsAsStrings.map((row, index) => {
-                    const numberRow = dataRowsAsNumbers[index];
+                const parseGvizDate = (gvizDate) => {
+                    if (typeof gvizDate !== 'string' || gvizDate.trim() === '') {
+                        return null;
+                    }
+                    try {
+                        // Handle gviz date format e.g. "Date(2024,10,2)"
+                        if (gvizDate.startsWith('Date(')) {
+                            const parts = gvizDate.match(/\d+/g);
+                            if (parts && parts.length >= 3) {
+                                const year = parseInt(parts[0]);
+                                const month = parseInt(parts[1]); // 0-indexed
+                                const day = parseInt(parts[2]);
+                                return new Date(year, month, day);
+                            }
+                        }
+                        // Handle ISO-like date strings "YYYY-MM-DD ..."
+                        const date = new Date(gvizDate);
+                        if (!isNaN(date.getTime())) {
+                            return date;
+                        }
+                    } catch {
+                        return null;
+                    }
+                    return null;
+                };
+                
+                const parseGvizDateToString = (gvizDate) => {
+                    const dateObj = parseGvizDate(gvizDate);
+                    if(dateObj){
+                        const year = dateObj.getFullYear();
+                        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                        const day = String(dateObj.getDate()).padStart(2, '0');
+                        return `${year}-${month}-${day}`;
+                    }
+                    // Fallback for values that are not dates but might be in the date column
+                    if (typeof gvizDate === 'string') {
+                        return gvizDate;
+                    }
+                    return '-';
+                };
+
+                const mappedData = dataRows.map(rowString => {
+                    const row = rowString.slice(1, -1).split('","');
+                    
+                    let updatedCells = [];
+                    let shippingStatusTrend = ''; // New variable for the trend icon
+                    try {
+                        let colW = row[22] || ''; // Get content of column W for trend
+                        let colX = row[23] || ''; // Get content of column X for metadata
+
+                        // Parse updatedCells from colX
+                        if (colX.length > 1 && colX.startsWith('{')) {
+                            const unescaped = colX.replace(/""/g, '"');
+                            const parsedMetadata = JSON.parse(unescaped);
+                            if (parsedMetadata && Array.isArray(parsedMetadata.updated_cols)) {
+                                updatedCells = parsedMetadata.updated_cols;
+                            }
+                        }
+
+                        // Use colW for trend icon
+                        if (colW === '▲' || colW === '▼') {
+                            shippingStatusTrend = colW;
+                        }
+
+                    } catch (e) {
+                        // console.warn("Failed to parse metadata or trend:", e);
+                    }
+
                     return {
                         'productName':          row[5],
                         'ingredientName':       row[2],
@@ -73,13 +134,15 @@
                         'shipmentStatus':       row[11],
                         'reasonForLimitation':  row[13],
                         'resolutionProspect':   row[14],
-                        'expectedDate':         numberRow[15] || row[15],
+                        'expectedDate':         parseGvizDateToString(row[15]),
                         'shipmentVolumeStatus': row[16],
                         'yjCode':               row[4],
                         'standard':             row[3],
                         'isGeneric':            row[7],
                         'isBasicDrug':          row[8],
-                        'updateDateSerial':     numberRow[12] || row[12]
+                        'updateDateObj':        parseGvizDate(row[19]),
+                        'updatedCells':         updatedCells,
+                        'shippingStatusTrend':  shippingStatusTrend // Add this
                     };
                 });
 
@@ -92,7 +155,7 @@
             }
         }
 
-        function renderStatusButton(status) {
+        function renderStatusButton(status, isUpdated = false) {
             const trimmedStatus = (status || "").trim();
             const span = document.createElement('span');
             span.className = "px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap inline-block transition-colors duration-150";
@@ -109,6 +172,10 @@
             } else {
                 span.classList.add('bg-gray-200', 'text-gray-800', 'hover:bg-gray-300');
                 span.textContent = trimmedStatus || "不明";
+            }
+
+            if (isUpdated) {
+                span.classList.add('border-red-500', 'border-2');
             }
             return span;
         }
@@ -182,7 +249,13 @@
             }
 
             sortStates.status = 'asc';
-            document.getElementById('sort-status-icon').textContent = '▲';
+            sortStates.productName = 'asc';
+            const statusIcon = document.getElementById('sort-status-icon');
+            if (statusIcon) statusIcon.textContent = '↕';
+            const productNameIcon = document.getElementById('sort-productName-icon');
+            if (productNameIcon) productNameIcon.textContent = '↕';
+            const ingredientNameIcon = document.getElementById('sort-ingredientName-icon');
+            if (ingredientNameIcon) ingredientNameIcon.textContent = '↕';
         }
         
         function handleIngredientClick(ingredient) {
@@ -254,6 +327,22 @@
             }
 
             const displayResults = data.slice(0, 500);
+            const columnMap = {
+                'productName': 5,
+                'ingredientName': 2,
+                'manufacturer': 6,
+                'shipmentStatus': 11,
+                'reasonForLimitation': 13,
+                'resolutionProspect': 14,
+                'expectedDate': 15,
+                'shipmentVolumeStatus': 16,
+                'yjCode': 4,
+                'standard': 3,
+                'isGeneric': 7,
+                'isBasicDrug': 8,
+                'updateDateSerial': 12
+            };
+
             displayResults.forEach((item, index) => {
                 const newRow = resultBody.insertRow();
                 const rowBgClass = index % 2 === 1 ? 'bg-indigo-50' : 'bg-white';
@@ -262,6 +351,9 @@
                 const drugNameCell = newRow.insertCell(0);
                 drugNameCell.setAttribute('data-label', '品名');
                 drugNameCell.classList.add("px-2", "py-2", "text-sm", "text-gray-900", "relative");
+                if (item.updatedCells && item.updatedCells.includes(columnMap.productName)) {
+                    drugNameCell.classList.add('text-red-600', 'font-bold');
+                }
 
                 const labelsContainer = document.createElement('div');
                 labelsContainer.className = 'vertical-labels-container';
@@ -307,7 +399,12 @@
                     dropdownContainer.className = 'dropdown w-full';
 
                     const button = document.createElement('button');
-                    button.className = "dropdown-button text-indigo-600 font-semibold hover:underline truncate-lines text-left w-full";
+                    let buttonClass = "dropdown-button text-indigo-600 font-semibold hover:underline truncate-lines text-left w-full";
+                    const isYjCodeUpdated = item.updatedCells && item.updatedCells.includes(columnMap.yjCode);
+                    if (isYjCodeUpdated) {
+                        buttonClass += ' border-red-500 border-2';
+                    }
+                    button.className = buttonClass;
                     button.textContent = drugName;
                     button.onclick = toggleDropdown;
 
@@ -331,14 +428,22 @@
                     yjCodeLink.textContent = '代替薬検索';
 
                     const hiyariLink = document.createElement('a');
-hiyariLink.href = hiyariLinkUrl;
+                    hiyariLink.href = hiyariLinkUrl;
                     hiyariLink.target = '_blank';
                     hiyariLink.rel = 'noopener noreferrer';
                     hiyariLink.className = "block px-3 py-2 text-sm text-gray-800 hover:bg-indigo-100 whitespace-nowrap";
                     hiyariLink.textContent = 'ヒヤリハット検索';
 
+                    const updateDateLink = document.createElement('a');
+                    updateDateLink.href = `./update/index.html?productName=${encodeURIComponent(drugName)}&shippingStatus=all&updateDate=all`;
+                    updateDateLink.target = '_blank';
+                    updateDateLink.rel = 'noopener noreferrer';
+                    updateDateLink.className = "block px-3 py-2 text-sm text-gray-800 hover:bg-indigo-100 whitespace-nowrap";
+                    updateDateLink.textContent = '情報更新日';
+
                     dropdownContent.appendChild(pmdaLink);
                     dropdownContent.appendChild(yjCodeLink);
+                    dropdownContent.appendChild(updateDateLink);
                     dropdownContent.appendChild(hiyariLink);
                     dropdownContainer.appendChild(button);
                     dropdownContainer.appendChild(dropdownContent);
@@ -349,6 +454,9 @@ hiyariLink.href = hiyariLinkUrl;
                 const ingredientNameCell = newRow.insertCell(1);
                 ingredientNameCell.setAttribute('data-label', '成分名');
                 ingredientNameCell.classList.add("px-2", "py-2", "text-sm", "text-gray-900", "truncate-lines");
+                if (item.updatedCells && item.updatedCells.includes(columnMap.ingredientName)) {
+                    ingredientNameCell.classList.add('text-red-600', 'font-bold');
+                }
                 const ingredientName = item.ingredientName || "";
                 
                 if (ingredientName) {
@@ -369,18 +477,40 @@ hiyariLink.href = hiyariLinkUrl;
                 statusCell.setAttribute('data-label', '出荷状況');
                 statusCell.classList.add("tight-cell", "py-2", "text-gray-900", "text-left");
 
+                const statusContainer = document.createElement('div');
+                statusContainer.className = 'flex items-center';
+
+                const isStatusUpdated = item.updatedCells && item.updatedCells.includes(columnMap.shipmentStatus);
+                if (isStatusUpdated) {
+                    statusCell.classList.add('text-red-600', 'font-bold');
+                }
+
                 const statusValue = (item.shipmentStatus || '').trim();
-                statusCell.appendChild(renderStatusButton(statusValue));
+                statusContainer.appendChild(renderStatusButton(statusValue, isStatusUpdated));
+
+                if (item.shippingStatusTrend) {
+                    const trendIcon = document.createElement('span');
+                    trendIcon.className = 'ml-1 text-red-500'; // Added text-red-500
+                    trendIcon.textContent = item.shippingStatusTrend;
+                    statusContainer.appendChild(trendIcon);
+                }
+                statusCell.appendChild(statusContainer);
                 
                 const reasonCell = newRow.insertCell(3);
                 reasonCell.textContent = item.reasonForLimitation || "";
                 reasonCell.setAttribute('data-label', '制限理由');
                 reasonCell.classList.add("px-2", "py-2", "text-xs", "text-gray-900", "truncate-lines");
+                if (item.updatedCells && item.updatedCells.includes(columnMap.reasonForLimitation)) {
+                    reasonCell.classList.add('text-red-600', 'font-bold');
+                }
 
                 const volumeCell = newRow.insertCell(4);
                 volumeCell.textContent = item.shipmentVolumeStatus || "";
                 volumeCell.setAttribute('data-label', '出荷量状況');
                 volumeCell.classList.add("px-2", "py-2", "text-xs", "text-gray-900");
+                if (item.updatedCells && item.updatedCells.includes(columnMap.shipmentVolumeStatus)) {
+                    volumeCell.classList.add('text-red-600', 'font-bold');
+                }
             });
         }
 
@@ -408,17 +538,38 @@ hiyariLink.href = hiyariLinkUrl;
             }
             const newDirection = sortStates[key] === 'asc' ? 'desc' : 'asc';
             sortStates[key] = newDirection;
-            document.getElementById(`sort-${key}-icon`).textContent = newDirection === 'asc' ? '▲' : '▼';
+
+            // Reset other sort icons
+            for (const otherKey in sortStates) {
+                if (otherKey !== key) {
+                    sortStates[otherKey] = 'asc'; // Or your default
+                    const icon = document.getElementById(`sort-${otherKey}-icon`);
+                    if(icon) icon.textContent = '↕';
+                }
+            }
+
+            document.getElementById(`sort-${key}-icon`).textContent = newDirection === 'asc' ? '↑' : '↓';
             
             filteredResults.sort((a, b) => {
-                const aValue = (a.shipmentStatus || '').trim();
-                const bValue = (b.shipmentStatus || '').trim();
+                let aValue, bValue;
+                if (key === 'status') {
+                    aValue = (a.shipmentStatus || '').trim();
+                    bValue = (b.shipmentStatus || '').trim();
+                } else if (key === 'productName') {
+                    aValue = (a.productName || '').trim();
+                    bValue = (b.productName || '').trim();
+                } else if (key === 'ingredientName') {
+                    aValue = (a.ingredientName || '').trim();
+                    bValue = (b.ingredientName || '').trim();
+                }
+
                 const compare = aValue.localeCompare(bValue, 'ja', { sensitivity: 'base' });
                 return newDirection === 'asc' ? compare : -compare;
             });
 
             renderTable(filteredResults);
-            showMessage(`「出荷状況」を${newDirection === 'asc' ? '昇順' : '降順'}でソートしました。`, "success");
+            const sortKeyName = key === 'status' ? '出荷状況' : (key === 'productName' ? '品名' : '成分名');
+            showMessage(`「${sortKeyName}」を${newDirection === 'asc' ? '昇順' : '降順'}でソートしました。`, "success");
             hideMessage(2000);
         }
         
@@ -454,6 +605,10 @@ hiyariLink.href = hiyariLinkUrl;
             document.getElementById('statusNormal').addEventListener('change', searchData);
             document.getElementById('statusLimited').addEventListener('change', searchData);
             document.getElementById('statusStopped').addEventListener('change', searchData);
+
+            document.getElementById('sort-productName-button').addEventListener('click', () => sortResults('productName'));
+            document.getElementById('sort-ingredientName-button').addEventListener('click', () => sortResults('ingredientName'));
+            document.getElementById('sort-status-button').addEventListener('click', () => sortResults('status'));
         }
 
         window.onload = function() {
@@ -472,16 +627,16 @@ hiyariLink.href = hiyariLinkUrl;
                 });
             });
 
-            const fileId = '1yhDbdCbnmDoXKRSj_CuLgKkIH2ohK1LD';
-            const googleDriveUrl = `https://docs.google.com/spreadsheets/d/${fileId}/export?format=xlsx`;
 
             async function fetchSpreadsheetData() {
+                const fileId = '1ZyjtfiRjGoV9xHSA5Go4rJZr281gqfMFW883Y7s9mQU';
+                const csvUrl = `https://docs.google.com/spreadsheets/d/${fileId}/gviz/tq?tqx=out:csv&cb=${new Date().getTime()}`;
                 showMessage('共有スプレッドシートからデータを読み込み中です...', 'info');
                 try {
-                    const response = await fetch(googleDriveUrl, { cache: "no-cache" });
+                    const response = await fetch(csvUrl, { cache: "no-cache" });
                     if (response.ok) {
-                        const data = await response.arrayBuffer();
-                        processExcelData(new Uint8Array(data));
+                        const csvText = await response.text();
+                        processCsvData(csvText);
 
                         if (excelData.length > 0) {
                             const cachePayload = {
@@ -508,14 +663,14 @@ hiyariLink.href = hiyariLinkUrl;
             }
 
             localforage.getItem('excelCache').then(cachedData => {
-                const fourHours = 4 * 60 * 60 * 1000;
-                if (cachedData && (new Date().getTime() - cachedData.timestamp < fourHours)) {
-                    console.log("Found recent cached data in localForage.");
-                    excelData = cachedData.data;
-                    renderTable([]);
-                    tableContainer.classList.add('hidden');
+                const oneHour = 1 * 60 * 60 * 1000; // 1時間
+                if (cachedData && (new Date().getTime() - cachedData.timestamp < oneHour)) {
+                                                            console.log("Found recent cached data in localForage.");
+                                                            excelData = cachedData.data;
+                                                            renderTable([]);
+                                                            tableContainer.classList.add('hidden');
                     showMessage(`キャッシュから ${excelData.length} 件のデータを読み込みました。検索を開始できます。`, "success");
-                    hideMessage(2000);
+                    hideMessage(3000);
                 } else {
                     if(cachedData) {
                         console.log("Cached data is old. Fetching from network.");
@@ -527,5 +682,5 @@ hiyariLink.href = hiyariLinkUrl;
             }).catch(err => {
                 console.error("Error reading from localForage, fetching from network.", err);
                 fetchSpreadsheetData();
-            });
-        };
+                        });
+                    };

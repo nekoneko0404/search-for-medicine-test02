@@ -1,26 +1,45 @@
 
         let data = [];
+        let filteredResults = [];
         let manufacturerLinks = {};
         const loadingIndicator = document.getElementById('loadingIndicator');
         const progressBarContainer = document.getElementById('progressBarContainer');
         const progressBar = document.getElementById('progressBar');
         const progressMessage = document.getElementById('progressMessage');
         const messageBox = document.getElementById('messageBox');
+
+        let messageHideTimer = null;
+
+        let sortStates = {
+            yjCode: 'asc',
+            productName: 'asc',
+            ingredientName: 'asc'
+        };
         
-        function showMessage(message, isError = true) {
-            messageBox.textContent = message;
-            messageBox.classList.remove('hidden');
-            if (isError) {
-                messageBox.classList.remove('bg-green-100', 'text-green-700');
-                messageBox.classList.add('bg-red-100', 'text-red-700');
+        function showMessage(text, type = 'info') {
+            if (messageHideTimer) {
+                clearTimeout(messageHideTimer);
+                messageHideTimer = null;
+            }
+            messageBox.textContent = text;
+            messageBox.classList.remove('hidden', 'bg-red-200', 'text-red-800', 'bg-green-200', 'text-green-800', 'bg-blue-200', 'text-blue-800');
+            messageBox.classList.add('block');
+            if (type === 'error') {
+                messageBox.classList.add('bg-red-200', 'text-red-800');
+            } else if (type === 'success') {
+                messageBox.classList.add('bg-green-200', 'text-green-800');
             } else {
-                messageBox.classList.remove('bg-red-100', 'text-red-700');
-                messageBox.classList.add('bg-green-100', 'text-green-700');
+                messageBox.classList.add('bg-blue-200', 'text-blue-800');
             }
         }
 
-        function hideMessage() {
-            messageBox.classList.add('hidden');
+        function hideMessage(delay) {
+            if (messageHideTimer) {
+                clearTimeout(messageHideTimer);
+            }
+            messageHideTimer = setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, delay);
         }
 
         function normalizeString(str) {
@@ -34,11 +53,16 @@
             progressBar.style.width = `${percentage}%`;
         }
         
-        function renderStatusButton(status) {
+        function renderStatusButton(status, isUpdated = false) { // isUpdated引数を追加
             const trimmedStatus = (status || "").trim();
             const span = document.createElement('span');
-            span.className = "status-button";
+            let baseClass = "status-button";
 
+            if (isUpdated) { // isUpdatedがtrueの場合に赤枠を追加
+                baseClass += ' border-red-500 border-2';
+            }
+            span.className = baseClass;
+ 
             if (trimmedStatus.includes("通常出荷") || trimmedStatus.includes("通")) {
                 span.classList.add('bg-indigo-500', 'text-white', 'hover:bg-indigo-600');
                 span.textContent = '通常出荷';
@@ -55,21 +79,61 @@
             return span;
         }
 
-        function processExcelData(arrayBuffer) {
+
+        function processCsvData(csvText) {
             updateProgress('データを処理中...', 75);
-            const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-            const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-            
-            const jsonDataWithStrings = XLSX.utils.sheet_to_json(worksheet, { header: 1, range: 1, defval: "" });
-            const jsonDataWithNumbers = XLSX.utils.sheet_to_json(worksheet, { header: 1, range: 1, raw: true, defval: "" });
+            const rows = csvText.trim().split('\n');
+            if (rows.length < 2) return [];
 
-            if (jsonDataWithStrings.length < 2) return [];
+            const dataRows = rows.slice(1);
 
-            const dataRowsAsStrings = jsonDataWithStrings.slice(1);
-            const dataRowsAsNumbers = jsonDataWithNumbers.slice(1);
+            const parseGvizDateToSerial = (gvizDate) => {
+                if (typeof gvizDate !== 'string' || !gvizDate.startsWith('Date(')) {
+                    const num = parseFloat(gvizDate);
+                    return isNaN(num) ? gvizDate : num;
+                }
+                try {
+                    const parts = gvizDate.match(/\d+/g);
+                    if (parts && parts.length >= 3) {
+                        const year = parseInt(parts[0]);
+                        const month = parseInt(parts[1]); // 0-indexed
+                        const day = parseInt(parts[2]);
+                        const jsDate = new Date(Date.UTC(year, month, day));
+                        return (jsDate.getTime() / 86400000) + 25569;
+                    }
+                    return gvizDate;
+                } catch {
+                    return gvizDate;
+                }
+            };
 
-            return dataRowsAsStrings.map((row, index) => {
-                const numberRow = dataRowsAsNumbers[index];
+            return dataRows.map(rowString => {
+                const row = rowString.slice(1, -1).split('","');
+                
+                let updatedCells = [];
+                let shippingStatusTrend = ''; // New variable for the trend icon
+                try {
+                    let colW = row[22] || ''; // Get content of column W for trend
+                    let colX = row[23] || ''; // Get content of column X for metadata
+
+                    // Parse updatedCells from colX
+                    if (colX.length > 1 && colX.startsWith('{')) {
+                        const unescaped = colX.replace(/""/g, '"');
+                        const parsedMetadata = JSON.parse(unescaped);
+                        if (parsedMetadata && Array.isArray(parsedMetadata.updated_cols)) {
+                            updatedCells = parsedMetadata.updated_cols;
+                        }
+                    }
+
+                    // Use colW for trend icon
+                    if (colW === '▲' || colW === '▼') {
+                        shippingStatusTrend = colW;
+                    }
+
+                } catch (e) {
+                    // console.warn("Failed to parse metadata or trend:", e);
+                }
+
                 return {
                     'productName':          row[5],
                     'ingredientName':       row[2],
@@ -77,34 +141,36 @@
                     'shipmentStatus':       row[11],
                     'reasonForLimitation':  row[13],
                     'resolutionProspect':   row[14],
-                    'expectedDate':         numberRow[15] || row[15],
+                    'expectedDate':         row[15],
                     'shipmentVolumeStatus': row[16],
                     'yjCode':               row[4],
                     'productCategory':      row[7],
                     'isBasicDrug':          row[8],
-                    'updateDateSerial':     numberRow[12] || row[12]
+                    'updateDateSerial':     parseGvizDateToSerial(row[19]),
+                    'updatedCells':         updatedCells,
+                    'shippingStatusTrend':  shippingStatusTrend // Add this
                 };
             });
         }
 
         async function fetchExcelData() {
-            console.log('Fetching Excel data from Google Drive...');
+            console.log('Fetching CSV data from Google Drive...');
             updateProgress('Google Driveからデータを読み込み中...', 0);
             
-            const fileId = '1yhDbdCbnmDoXKRSj_CuLgKkIH2ohK1LD';
-            const googleDriveUrl = `https://docs.google.com/spreadsheets/d/${fileId}/export?format=xlsx`;
+            const fileId = '1ZyjtfiRjGoV9xHSA5Go4rJZr281gqfMFW883Y7s9mQU';
+            const csvUrl = `https://docs.google.com/spreadsheets/d/${fileId}/gviz/tq?tqx=out:csv&cb=${new Date().getTime()}`;
 
             try {
                 updateProgress('データをダウンロード中...', 50);
-                const response = await fetch(googleDriveUrl, { cache: "no-cache" });
+                const response = await fetch(csvUrl, { cache: "no-cache" });
                 if (!response.ok) {
                     const errorText = await response.text();
                     console.error('Fetch Error Body:', errorText);
                     throw new Error(`HTTP error! status: ${response.status} ${response.statusText}`);
                 }
                 
-                const arrayBuffer = await response.arrayBuffer();
-                const processedData = processExcelData(arrayBuffer);
+                const csvText = await response.text();
+                const processedData = processCsvData(csvText);
 
                 if (processedData.length > 0) {
                     const cachePayload = {
@@ -120,8 +186,8 @@
                 updateProgress('データの読み込みが完了しました！', 100);
                 return { data: processedData, date: 'Google Drive' };
             } catch (error) {
-                console.error(`データの取得に失敗しました: ${googleDriveUrl} ${error}`);
-                showMessage(`データの取得に失敗しました。詳細: ${error.message}`);
+                console.error(`データの取得に失敗しました: ${csvUrl} ${error}`);
+                showMessage(`データの取得に失敗しました。詳細: ${error.message}`, 'error');
             } finally {
                 setTimeout(() => progressBarContainer.classList.add('hidden'), 1000);
             }
@@ -161,6 +227,40 @@
             }
         }
 
+        function sortResults(key) {
+            if (filteredResults.length === 0) {
+                showMessage("ソートするデータがありません。", 'info');
+                hideMessage(2000);
+                return;
+            }
+            const newDirection = sortStates[key] === 'asc' ? 'desc' : 'asc';
+
+            for (const k in sortStates) {
+                if (k !== key) {
+                    sortStates[k] = 'asc';
+                }
+                 const icon = document.getElementById(`sort-${k}-icon`);
+                if (icon && k !== key) {
+                    icon.textContent = '↕';
+                }
+            }
+
+            sortStates[key] = newDirection;
+            document.getElementById(`sort-${key}-icon`).textContent = newDirection === 'asc' ? '↑' : '↓';
+
+            filteredResults.sort((a, b) => {
+                const aValue = normalizeString(a[key]);
+                const bValue = normalizeString(b[key]);
+                const compare = aValue.localeCompare(bValue, 'ja', { sensitivity: 'base' });
+                return newDirection === 'asc' ? compare : -compare;
+            });
+
+            displayResults(filteredResults);
+            const sortKeyName = key === 'yjCode' ? 'YJコード' : (key === 'productName' ? '品名' : '成分名');
+            showMessage(`「${sortKeyName}」を${newDirection === 'asc' ? '昇順' : '降順'}でソートしました。`, 'success');
+            hideMessage(2000);
+        }
+
         function performSearch() {
             const yjCodeInput = document.getElementById('yjCodeInput');
             const yjCode = normalizeString(yjCodeInput.value.trim());
@@ -170,22 +270,22 @@
             const statusLimited = document.getElementById('statusLimited').checked;
             const statusStop = document.getElementById('statusStop').checked;
 
-            hideMessage();
             document.getElementById('resultsContainer').innerHTML = '';
 
             if (isAnyDigitChecked) {
                 if (!yjCode || yjCode.length !== 12 || !/^[0-9a-zA-Z]+$/.test(yjCode)) {
-                    showMessage('検索項目をチェックした際は、正しい12桁のYJコードを入力してください。');
+                    showMessage('検索項目をチェックした際は、正しい12桁のYJコードを入力してください。', 'error');
                     return;
                 }
             }
 
             if (!isAnyDigitChecked && !statusNormal && !statusLimited && !statusStop) {
-                showMessage('検索項目と出荷状況のチェックを全て外したため、検索結果は表示されません。', false);
+                showMessage('検索項目と出荷状況のチェックを全て外したため、検索結果は表示されません。', 'info');
+                hideMessage(2000);
                 return;
             }
 
-            let filteredData = data;
+            filteredResults = data;
             
             if (isAnyDigitChecked) {
                 const checks = {
@@ -197,7 +297,7 @@
                     d3: document.getElementById('digits3').checked
                 };
 
-                filteredData = filteredData.filter(item => {
+                filteredResults = filteredResults.filter(item => {
                     const itemYjCode = normalizeString(item.yjCode || '');
                     if (!itemYjCode) return false;
 
@@ -215,7 +315,7 @@
             }
             
             if (statusNormal || statusLimited || statusStop) {
-                filteredData = filteredData.filter(item => {
+                filteredResults = filteredResults.filter(item => {
                     const status = normalizeString(item.shipmentStatus || '');
                     if (statusNormal && (status.includes('通常出荷') || status.includes('通'))) return true;
                     if (statusLimited && (status.includes('限定出荷') || status.includes('出荷制限') || status.includes('限') || status.includes('制'))) return true;
@@ -224,9 +324,14 @@
                 });
             }
 
-            displayResults(filteredData.slice(0, 500));
-            if (filteredData.length === 0) {
-                showMessage('条件に一致する医薬品は見つかりませんでした。', false);
+            sortStates.yjCode = 'asc';
+            sortStates.productName = 'asc';
+            sortStates.ingredientName = 'asc';
+
+            displayResults(filteredResults.slice(0, 500));
+            if (filteredResults.length === 0) {
+                showMessage('条件に一致する医薬品は見つかりませんでした。', 'info');
+                hideMessage(2000);
             }
         }
 
@@ -242,19 +347,48 @@
             table.className = 'min-w-full divide-y divide-gray-200 table-fixed';
             const thead = table.createTHead();
             thead.className = "bg-indigo-100 sticky top-0";
+            
             const headerRow = thead.insertRow();
-            const headers = ['YJコード', '品名', '成分名', 'メーカー', '出荷状況', '制限理由', '出荷量状況'];
-            const widths = ['10%', '25%', '20%', '15%', '10%', '10%', '10%'];
-            headers.forEach((headerText, index) => {
+            const headers = [
+                { key: 'yjCode', text: 'YJコード', width: '10%' },
+                { key: 'productName', text: '品名', width: '25%' },
+                { key: 'ingredientName', text: '成分名', width: '20%' },
+                { key: null, text: 'メーカー', width: '15%' },
+                { key: null, text: '出荷状況', width: '10%' },
+                { key: null, text: '制限理由', width: '10%' },
+                { key: null, text: '出荷量状況', width: '10%' }
+            ];
+
+            headers.forEach(header => {
                 const th = document.createElement('th');
-                th.className = `px-2 py-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap w-[${widths[index]}]`;
-                th.textContent = headerText;
+                th.className = `px-2 py-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap w-[${header.width}]`;
+                if (header.key) {
+                    th.innerHTML = `<div class="flex items-center justify-start"><span>${header.text}</span><button id="sort-${header.key}-button" class="ml-1 text-indigo-600 hover:text-indigo-800 transition-colors duration-150"><span id="sort-${header.key}-icon">↕</span></button></div>`;
+                } else {
+                    th.textContent = header.text;
+                }
                 headerRow.appendChild(th);
             });
             
             const tbody = table.createTBody();
             tbody.id = 'resultTableBody';
             tbody.className = 'bg-white divide-y divide-gray-200';
+
+            const columnMap = {
+                'yjCode': 4,
+                'productName': 5,
+                'ingredientName': 2,
+                'manufacturer': 6,
+                'shipmentStatus': 11,
+                'reasonForLimitation': 13,
+                'resolutionProspect': 14,
+                'expectedDate': 15,
+                'shipmentVolumeStatus': 16,
+                'productCategory': 7,
+                'isBasicDrug': 8,
+                'updateDateSerial': 12
+            };
+
             results.forEach((item, index) => {
                 const newRow = tbody.insertRow();
                 const rowBgClass = index % 2 === 1 ? 'bg-indigo-50' : 'bg-white';
@@ -263,11 +397,17 @@
                 const yjCodeCell = newRow.insertCell(0);
                 yjCodeCell.setAttribute('data-label', 'YJコード');
                 yjCodeCell.classList.add("px-2", "py-2", "text-sm", "text-gray-900");
+                if (item.updatedCells && item.updatedCells.includes(columnMap.yjCode)) {
+                    yjCodeCell.classList.add('text-red-600', 'font-bold');
+                }
                 yjCodeCell.textContent = item.yjCode || '-';
 
                 const drugNameCell = newRow.insertCell(1);
                 drugNameCell.setAttribute('data-label', '品名');
                 drugNameCell.classList.add("px-2", "py-2", "text-sm", "text-gray-900");
+                if (item.updatedCells && item.updatedCells.includes(columnMap.productName)) {
+                    drugNameCell.classList.add('text-red-600', 'font-bold');
+                }
                 
                 const labelsContainer = document.createElement('div');
                 labelsContainer.className = 'vertical-labels-container';
@@ -302,11 +442,17 @@
                 const ingredientNameCell = newRow.insertCell(2);
                 ingredientNameCell.setAttribute('data-label', '成分名');
                 ingredientNameCell.classList.add("px-2", "py-2", "text-sm", "text-gray-900", "truncate-lines");
+                if (item.updatedCells && item.updatedCells.includes(columnMap.ingredientName)) {
+                    ingredientNameCell.classList.add('text-red-600', 'font-bold');
+                }
                 ingredientNameCell.textContent = item.ingredientName || '-';
 
                 const manufacturerCell = newRow.insertCell(3);
                 manufacturerCell.setAttribute('data-label', 'メーカー');
                 manufacturerCell.classList.add("px-2", "py-2", "text-sm", "text-gray-900");
+                if (item.updatedCells && item.updatedCells.includes(columnMap.manufacturer)) {
+                    manufacturerCell.classList.add('text-red-600', 'font-bold');
+                }
                 const manufacturerName = item.manufacturer || '-';
                 const manufacturerUrl = manufacturerLinks[manufacturerName];
                 if (manufacturerUrl) {
@@ -326,26 +472,43 @@
                 statusCell.classList.add("tight-cell", "py-2", "text-gray-900", "text-left");
                 const statusDiv = document.createElement('div');
                 statusDiv.className = 'flex items-center justify-start';
-                statusDiv.appendChild(renderStatusButton(item.shipmentStatus));
+                statusDiv.appendChild(renderStatusButton(item.shipmentStatus, item.updatedCells && item.updatedCells.includes(columnMap.shipmentStatus)));
+
+                if (item.shippingStatusTrend) {
+                    const trendIcon = document.createElement('span');
+                    trendIcon.className = 'ml-1 text-red-500';
+                    trendIcon.textContent = item.shippingStatusTrend;
+                    statusDiv.appendChild(trendIcon);
+                }
                 statusCell.appendChild(statusDiv);
 
                 const reasonCell = newRow.insertCell(5);
                 reasonCell.textContent = item.reasonForLimitation || '-';
                 reasonCell.setAttribute('data-label', '制限理由');
                 reasonCell.classList.add("px-2", "py-2", "text-xs", "text-gray-900", "truncate-lines");
+                if (item.updatedCells && item.updatedCells.includes(columnMap.reasonForLimitation)) {
+                    reasonCell.classList.add('text-red-600', 'font-bold');
+                }
 
                 const volumeCell = newRow.insertCell(6);
                 volumeCell.textContent = item.shipmentVolumeStatus || '-';
                 volumeCell.setAttribute('data-label', '出荷量状況');
                 volumeCell.classList.add("px-2", "py-2", "text-xs", "text-gray-900");
+                if (item.updatedCells && item.updatedCells.includes(columnMap.shipmentVolumeStatus)) {
+                    volumeCell.classList.add('text-red-600', 'font-bold');
+                }
             });
             table.appendChild(tbody);
             tableContainer.appendChild(table);
             container.appendChild(tableContainer);
 
+            document.getElementById('sort-yjCode-button').addEventListener('click', () => sortResults('yjCode'));
+            document.getElementById('sort-productName-button').addEventListener('click', () => sortResults('productName'));
+            document.getElementById('sort-ingredientName-button').addEventListener('click', () => sortResults('ingredientName'));
+
             const cardListContainer = document.createElement('div');
             cardListContainer.className = 'block md:hidden w-full space-y-4 mt-4';
-            results.forEach(item => cardListContainer.appendChild(createCardElement(item)));
+            results.forEach((item, index) => cardListContainer.appendChild(createCardElement(item, columnMap, index))); // Pass columnMap to createCardElement
             container.appendChild(cardListContainer);
 
             document.querySelectorAll('#resultsContainer .name-clickable').forEach(element => {
@@ -361,15 +524,16 @@
             });
         }
 
-        function createCardElement(item) {
+        function createCardElement(item, columnMap, index) {
             const card = document.createElement('div');
-            card.className = 'bg-white rounded-lg shadow border border-gray-200 p-4';
+            const cardBgClass = index % 2 === 1 ? 'bg-indigo-50' : 'bg-white';
+            card.className = `${cardBgClass} rounded-lg shadow border border-gray-200 p-4`;
             
             const header = document.createElement('div');
             header.className = 'flex items-start justify-between mb-2';
             
             const title = document.createElement('h3');
-            title.className = 'text-base font-bold text-gray-900 leading-tight whitespace-nowrap overflow-hidden text-overflow-ellipsis';
+            title.className = `text-base font-bold text-gray-900 leading-tight whitespace-nowrap overflow-hidden text-overflow-ellipsis ${item.updatedCells && item.updatedCells.includes(columnMap.productName) ? 'text-red-600 font-bold' : ''}`;
             const nameSpan = document.createElement('span');
             nameSpan.className = 'card-name-clickable name-clickable text-indigo-600 hover:underline';
             nameSpan.dataset.yjcode = item.yjCode || '';
@@ -399,14 +563,14 @@
             const body = document.createElement('div');
             body.className = 'text-sm space-y-1';
 
-            const createCardItem = (label, value, isHtml = false) => {
+            const createCardItem = (label, value, isHtml = false, colKey = null) => {
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'flex justify-between items-start card-item';
                 const labelSpan = document.createElement('span');
                 labelSpan.className = 'text-gray-700 font-semibold w-1/3 flex-shrink-0';
                 labelSpan.textContent = label;
                 const valueSpan = document.createElement('span');
-                valueSpan.className = 'text-right w-2/3';
+                valueSpan.className = `text-right w-2/3 ${colKey && item.updatedCells && item.updatedCells.includes(columnMap[colKey]) ? 'text-red-600 font-bold' : ''}`;
                 if (isHtml) {
                     valueSpan.appendChild(value);
                 } else {
@@ -436,15 +600,27 @@
                 manufacturerContent.textContent = manufacturerName;
             }
 
-            body.appendChild(createCardItem('YJコード:', item.yjCode || '-'));
-            body.appendChild(createCardItem('成分名:', item.ingredientName || '-'));
-            body.appendChild(createCardItem('メーカー:', manufacturerContent, true));
+            body.appendChild(createCardItem('YJコード:', item.yjCode || '-', false, 'yjCode'));
+            body.appendChild(createCardItem('成分名:', item.ingredientName || '-', false, 'ingredientName'));
+            body.appendChild(createCardItem('メーカー:', manufacturerContent, true, 'manufacturer'));
             const hr = document.createElement('hr');
 hr.className = 'my-2 border-gray-200';
             body.appendChild(hr);
-            body.appendChild(createCardItem('出荷状況:', renderStatusButton(item.shipmentStatus), true));
-            body.appendChild(createCardItem('制限理由:', item.reasonForLimitation || '-'));
-            body.appendChild(createCardItem('出荷量状況:', item.shipmentVolumeStatus || '-'));
+
+            const statusContainer = document.createElement('div');
+            statusContainer.className = 'flex items-center justify-end'; // justify-end for card view
+            statusContainer.appendChild(renderStatusButton(item.shipmentStatus, item.updatedCells && item.updatedCells.includes(columnMap.shipmentStatus)));
+
+            if (item.shippingStatusTrend) {
+                const trendIcon = document.createElement('span');
+                trendIcon.className = 'ml-1 text-red-500';
+                trendIcon.textContent = item.shippingStatusTrend;
+                statusContainer.appendChild(trendIcon);
+            }
+            body.appendChild(createCardItem('出荷状況:', statusContainer, true, 'shipmentStatus'));
+
+            body.appendChild(createCardItem('制限理由:', item.reasonForLimitation || '-', false, 'reasonForLimitation'));
+            body.appendChild(createCardItem('出荷量状況:', item.shipmentVolumeStatus || '-', false, 'shipmentVolumeStatus'));
 
             card.appendChild(header);
             card.appendChild(body);
@@ -457,11 +633,16 @@ hr.className = 'my-2 border-gray-200';
             const manufacturerDataPromise = fetchManufacturerData();
             
             const excelDataPromise = localforage.getItem('excelCache').then(cachedData => {
-                if (cachedData) {
-                    console.log("Found cached data in localForage.");
+                const oneHour = 1 * 60 * 60 * 1000; // 1時間
+                if (cachedData && (new Date().getTime() - cachedData.timestamp < oneHour)) {
+                    console.log("Found recent cached data in localForage.");
                     return { data: cachedData.data, date: 'キャッシュ' };
                 } else {
-                    console.log("No cached data found. Fetching from network.");
+                    if(cachedData) {
+                        console.log("Cached data is old. Fetching from network.");
+                    } else {
+                        console.log("No cached data found. Fetching from network.");
+                    }
                     return fetchExcelData();
                 }
             }).catch(err => {
@@ -483,10 +664,11 @@ hr.className = 'my-2 border-gray-200';
                     document.getElementById('yjCodeInput').value = String(yjCodeFromUrl).trim();
                     performSearch();
                 } else {
-                    showMessage('データの準備ができました。YJコードを入力して検索してください。', false);
+                    showMessage('データの準備ができました。YJコードを入力して検索してください。', 'success');
+                    hideMessage(3000);
                 }
             } else {
-                showMessage('データの読み込みに失敗しました。ページを再読み込みしてください。');
+                showMessage('データの読み込みに失敗しました。ページを再読み込みしてください。', 'error');
             }
             
             loadingIndicator.style.display = 'none';

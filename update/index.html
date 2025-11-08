@@ -9,10 +9,10 @@
         script-src 'self' https://cdn.jsdelivr.net https://unpkg.com https://www.googletagmanager.com;
         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net;
         img-src 'self' data:;
-        connect-src 'self' https://docs.google.com https://*.googleusercontent.com https://hiyari-proxy-708146219355.asia-east1.run.app https://cdn.jsdelivr.net ws://127.0.0.1:*;
+        connect-src 'self' https://docs.google.com https://*.googleusercontent.com https://hiyari-proxy-708146219355.asia-east1.run.app https://cdn.jsdelivr.net ws://127.0.0.1:* https://www.google-analytics.com;
     ">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.16" integrity="sha384-hexzD4m33RNzdvbV2ZW2FJcYlGemNPAdBKQsEcc389OUSwlT9xpg4BeEtiCeylHY" crossorigin="anonymous"></script>
-    <script src="https://unpkg.com/@e965/xlsx@0.20.3/dist/xlsx.full.min.js" integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT" crossorigin="anonymous"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js" integrity="sha384-MTDrIlFOzEqpmOxY6UIA/1Zkh0a64UlmJ6R0UrZXqXCPx99siPGi8EmtQjIeCcTH" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght400;700&display=swap">
     <link rel="stylesheet" href="../unify.css">
@@ -31,11 +31,13 @@
         </div>
         <span id="dataDate" class="text-gray-500 text-xs whitespace-nowrap mb-4 block text-center"></span>
         
-        <div class="flex flex-col sm:flex-row items-center justify-between sm:space-x-4 space-y-2 sm:space-y-0 mb-6">
-            <input type="text" id="searchInput" placeholder="品名、成分名で検索 (Enterまたはボタンで実行)" class="unified-input w-full">
-            <button id="searchButton" class="unified-button">
-                検索
-            </button>
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-6">
+            <input type="text" id="searchInput" placeholder="品名、成分名で検索" class="unified-input w-full sm:w-auto flex-grow">
+            <div class="flex gap-2 flex-wrap justify-start">
+                <button id="searchButton" class="unified-button">検索</button>
+                <button id="clearButton" class="unified-button">クリア</button>
+                <button id="recoveryButton" class="unified-button">復旧情報</button>
+            </div>
         </div>
 
         <div class="flex flex-col lg:flex-row gap-4 mb-6">
@@ -45,6 +47,8 @@
                     <label class="flex items-center"><input type="checkbox" data-status="通常出荷" class="form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out" checked><span class="ml-1.5 text-gray-900">通常出荷</span></label>
                     <label class="flex items-center"><input type="checkbox" data-status="出荷制限" class="form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out" checked><span class="ml-1.5 text-gray-900">限定出荷</span></label>
                     <label class="flex items-center"><input type="checkbox" data-status="供給停止" class="form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out" checked><span class="ml-1.5 text-gray-900">供給停止</span></label>
+                    <label class="flex items-center"><input type="checkbox" data-trend="▲" class="form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"><span class="ml-1.5 text-gray-900">▲</span></label>
+                    <label class="flex items-center"><input type="checkbox" data-trend="▼" class="form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"><span class="ml-1.5 text-gray-900">▼</span></label>
                 </div>
             </div>
             <!-- 情報更新日フィルター -->
