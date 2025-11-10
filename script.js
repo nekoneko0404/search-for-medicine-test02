@@ -119,8 +119,10 @@
                         }
 
                         // Use colW for trend icon
-                        if (colW === '▲' || colW === '▼') {
-                            shippingStatusTrend = colW;
+                        if (colW === '▲' || colW === '⤴️') {
+                            shippingStatusTrend = '⤴️';
+                        } else if (colW === '▼' || colW === '⤵️') {
+                            shippingStatusTrend = '⤵️';
                         }
 
                     } catch (e) {
@@ -674,10 +676,15 @@
             localforage.getItem('excelCache').then(cachedData => {
                 const oneHour = 1 * 60 * 60 * 1000; // 1時間
                 if (cachedData && (new Date().getTime() - cachedData.timestamp < oneHour)) {
-                                                            console.log("Found recent cached data in localForage.");
-                                                            excelData = cachedData.data;
-                                                            renderTable([]);
-                                                            tableContainer.classList.add('hidden');
+                    console.log("Found recent cached data in localForage.");
+                    cachedData.data.forEach(item => {
+                        if (item.updateDateObj && typeof item.updateDateObj === 'string') {
+                            item.updateDateObj = new Date(item.updateDateObj);
+                        }
+                    });
+                    excelData = cachedData.data;
+                    renderTable([]);
+                    tableContainer.classList.add('hidden');
                     showMessage(`キャッシュから ${excelData.length} 件のデータを読み込みました。検索を開始できます。`, "success");
                     hideMessage(3000);
                 } else {
@@ -691,5 +698,5 @@
             }).catch(err => {
                 console.error("Error reading from localForage, fetching from network.", err);
                 fetchSpreadsheetData();
-                        });
-                    };
+            });
+        };
