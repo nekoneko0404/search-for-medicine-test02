@@ -55,7 +55,7 @@
             if (trimmedStatus.includes("通常出荷") || trimmedStatus.includes("通")) {
                 span.classList.add('bg-indigo-500', 'text-white', 'hover:bg-indigo-600');
                 span.textContent = '通常出荷';
-            } else if (trimmedStatus.includes("限定出荷") || trimmedStatus.includes("出荷制限") || trimmedStatus.includes("限") || trimmedStatus.includes("制")) {
+            } else if (trimmedStatus.includes("限定出荷") || trimmedStatus.includes("出荷制限") || trimmedStatus.includes("限") || trimmedStatus.includes("制") || trimmedStatus.includes("調整") || trimmedStatus.includes("出荷調整") || trimmedStatus.includes("供給調整")) {
                 span.classList.add('bg-yellow-400', 'text-gray-800', 'hover:bg-yellow-500');
                 span.textContent = '限定出荷';
             } else if (trimmedStatus.includes("供給停止") || trimmedStatus.includes("停止") || trimmedStatus.includes("停")) {
@@ -184,7 +184,7 @@
 
                         }
 
-                        if (statusFilters.includes("限定出荷") && (currentStatus.includes("限定出荷") || currentStatus.includes("出荷制限") || currentStatus.includes("限") || currentStatus.includes("制"))) {
+                        if (statusFilters.includes("限定出荷") && (currentStatus.includes("限定出荷") || currentStatus.includes("出荷制限") || currentStatus.includes("限") || currentStatus.includes("制") || currentStatus.includes("調整") || currentStatus.includes("出荷調整") || currentStatus.includes("供給調整"))) {
 
                             matchStatus = true;
 
