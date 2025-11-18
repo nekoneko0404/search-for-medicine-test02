@@ -55,7 +55,7 @@
             if (trimmedStatus.includes("通常出荷") || trimmedStatus.includes("通")) {
                 span.classList.add('bg-indigo-500', 'text-white', 'hover:bg-indigo-600');
                 span.textContent = '通常出荷';
-            } else if (trimmedStatus.includes("限定出荷") || trimmedStatus.includes("出荷制限") || trimmedStatus.includes("限") || trimmedStatus.includes("制") || trimmedStatus.includes("調整") || trimmedStatus.includes("出荷調整") || trimmedStatus.includes("供給調整")) {
+            } else if (trimmedStatus.includes("限定出荷") || trimmedStatus.includes("出荷制限") || trimmedStatus.includes("限") || trimmedStatus.includes("制")) {
                 span.classList.add('bg-yellow-400', 'text-gray-800', 'hover:bg-yellow-500');
                 span.textContent = '限定出荷';
             } else if (trimmedStatus.includes("供給停止") || trimmedStatus.includes("停止") || trimmedStatus.includes("停")) {
@@ -73,6 +73,7 @@
         }
 
                 function searchData() {
+                    document.getElementById('help-image-container').classList.add('hidden');
 
                     if (excelData.length === 0) {
 
@@ -114,17 +115,31 @@
 
         
 
-                    if (allSearchFieldsEmpty && allCheckboxesChecked) {
+                                        if (allSearchFieldsEmpty && allCheckboxesChecked) {
 
-                        renderTable([]);
+        
 
-                        tableContainer.classList.add('hidden');
+                                            renderTable([]);
 
-                        hideMessage(0);
+        
 
-                        return;
+                                            tableContainer.classList.add('hidden');
 
-                    } else {
+        
+
+                                            document.getElementById('help-image-container').classList.remove('hidden');
+
+        
+
+                                            hideMessage(0);
+
+        
+
+                                            return;
+
+        
+
+                                        } else {
 
                         tableContainer.classList.remove('hidden');
 
@@ -184,7 +199,7 @@
 
                         }
 
-                        if (statusFilters.includes("限定出荷") && (currentStatus.includes("限定出荷") || currentStatus.includes("出荷制限") || currentStatus.includes("限") || currentStatus.includes("制") || currentStatus.includes("調整") || currentStatus.includes("出荷調整") || currentStatus.includes("供給調整"))) {
+                        if (statusFilters.includes("限定出荷") && (currentStatus.includes("限定出荷") || currentStatus.includes("出荷制限") || currentStatus.includes("限") || currentStatus.includes("制"))) {
 
                             matchStatus = true;
 
@@ -611,6 +626,10 @@
         }
 
         window.onload = async function() {
+            document.getElementById('sort-status-icon').textContent = '↕';
+            document.getElementById('sort-productName-icon').textContent = '↕';
+            document.getElementById('sort-ingredientName-icon').textContent = '↕';
+
             attachSearchListeners();
             window.addEventListener('click', closeAllDropdowns);
 
