@@ -76,21 +76,41 @@ async function initApp() {
         // Check URL params
         const urlParams = new URLSearchParams(window.location.search);
         const yjCodeParam = urlParams.get('yjcode');
+        const modeParam = urlParams.get('mode');
+
         if (yjCodeParam) {
             elements.yjCodeInput.value = yjCodeParam;
 
-            // Set specific defaults for link navigation
-            // Request: Class 2 places (3 & 4 digits), Form, Normal Shipment
-            if (elements.checkboxes.class3) elements.checkboxes.class3.checked = true;
-            if (elements.checkboxes.class4) elements.checkboxes.class4.checked = true;
-            if (elements.checkboxes.form) elements.checkboxes.form.checked = true;
-            if (elements.checkboxes.ingredient) elements.checkboxes.ingredient.checked = false;
-            if (elements.checkboxes.standard) elements.checkboxes.standard.checked = false;
-            if (elements.checkboxes.brand) elements.checkboxes.brand.checked = false;
+            // Determine checkbox settings based on mode
+            const isAlternativeSearch = modeParam === 'alternative';
+            const isIngredientSearch = modeParam === 'ingredient';
 
-            if (elements.statusCheckboxes.normal) elements.statusCheckboxes.normal.checked = true;
-            if (elements.statusCheckboxes.limited) elements.statusCheckboxes.limited.checked = false;
-            if (elements.statusCheckboxes.stopped) elements.statusCheckboxes.stopped.checked = false;
+            // Set defaults based on navigation source
+            if (isIngredientSearch) {
+                // Ingredient search: only check ingredient (7 digits) and all statuses
+                if (elements.checkboxes.class3) elements.checkboxes.class3.checked = false;
+                if (elements.checkboxes.class4) elements.checkboxes.class4.checked = false;
+                if (elements.checkboxes.form) elements.checkboxes.form.checked = false;
+                if (elements.checkboxes.ingredient) elements.checkboxes.ingredient.checked = true;
+                if (elements.checkboxes.standard) elements.checkboxes.standard.checked = false;
+                if (elements.checkboxes.brand) elements.checkboxes.brand.checked = false;
+
+                if (elements.statusCheckboxes.normal) elements.statusCheckboxes.normal.checked = true;
+                if (elements.statusCheckboxes.limited) elements.statusCheckboxes.limited.checked = true;
+                if (elements.statusCheckboxes.stopped) elements.statusCheckboxes.stopped.checked = true;
+            } else {
+                // Alternative or default search
+                if (elements.checkboxes.class3) elements.checkboxes.class3.checked = true;
+                if (elements.checkboxes.class4) elements.checkboxes.class4.checked = true;
+                if (elements.checkboxes.form) elements.checkboxes.form.checked = true;
+                if (elements.checkboxes.ingredient) elements.checkboxes.ingredient.checked = isAlternativeSearch;
+                if (elements.checkboxes.standard) elements.checkboxes.standard.checked = false;
+                if (elements.checkboxes.brand) elements.checkboxes.brand.checked = false;
+
+                if (elements.statusCheckboxes.normal) elements.statusCheckboxes.normal.checked = true;
+                if (elements.statusCheckboxes.limited) elements.statusCheckboxes.limited.checked = isAlternativeSearch;
+                if (elements.statusCheckboxes.stopped) elements.statusCheckboxes.stopped.checked = isAlternativeSearch;
+            }
 
             searchYjCode();
         }
@@ -255,15 +275,26 @@ function renderResults(data) {
         'shipmentStatus': 11
     };
 
-    displayData.forEach(item => {
+    displayData.forEach((item, index) => {
         const row = elements.resultTableBody.insertRow();
-        row.className = "hover:bg-indigo-50 transition-colors group";
+        const rowBgClass = index % 2 === 1 ? 'bg-gray-50' : 'bg-white';
+        row.className = `${rowBgClass} hover:bg-indigo-50 transition-colors group`;
 
         // YJ Code
         const cellYj = row.insertCell(0);
-        cellYj.className = "px-4 py-3 text-sm font-mono text-gray-600 align-top";
+        cellYj.className = "px-4 py-3 text-sm font-mono align-top";
         cellYj.setAttribute('data-label', 'YJコード');
-        cellYj.textContent = item.yjCode || '';
+
+        if (item.yjCode) {
+            const link = document.createElement('a');
+            // Add mode parameter to distinguish from top page navigation
+            link.href = `index.html?yjcode=${item.yjCode}&mode=alternative`;
+            link.className = "text-indigo-600 font-semibold hover:underline";
+            link.textContent = item.yjCode;
+            cellYj.appendChild(link);
+        } else {
+            cellYj.textContent = '';
+        }
 
         // Name
         const cellName = row.insertCell(1);
@@ -316,7 +347,19 @@ function renderResults(data) {
         cellStatus.className = "px-4 py-3 align-top";
         cellStatus.setAttribute('data-label', '出荷状況');
         const isStatusUpdated = item.updatedCells && item.updatedCells.includes(columnMap.shipmentStatus);
-        cellStatus.appendChild(renderStatusButton(item.shipmentStatus, isStatusUpdated));
+        
+        const statusContainer = document.createElement('div');
+        statusContainer.className = 'flex items-center gap-1';
+        statusContainer.appendChild(renderStatusButton(item.shipmentStatus, isStatusUpdated));
+
+        if (item.shippingStatusTrend) {
+            const trendIcon = document.createElement('span');
+            trendIcon.className = 'text-base text-red-500 font-bold';
+            trendIcon.textContent = item.shippingStatusTrend;
+            statusContainer.appendChild(trendIcon);
+        }
+        cellStatus.appendChild(statusContainer);
+
         // Highlight if shipment status was recently updated
         if (isStatusUpdated) {
             cellStatus.classList.add('text-red-600', 'font-bold');
