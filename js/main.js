@@ -31,6 +31,8 @@ const elements = {
     sortIngredientNameIcon: null,
     reloadDataBtn: null,
     notificationArea: null,
+    reloadDataBtn: null,
+    notificationArea: null,
     pageFooter: null,
     infoContainer: null
 };

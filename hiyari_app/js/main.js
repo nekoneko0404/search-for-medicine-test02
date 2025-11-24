@@ -1,5 +1,5 @@
 /** 
- * Hiyari Hat App Main Logic
+ * Hiyari Hat App Main Logic (test02)
  * - Optimized API queries searching both DATMEDNAME and DATGENERIC
  * - Compact single-row UI with auto-search on Enter
  * - 3-column grid layout for wide screens
@@ -218,7 +218,7 @@ function parseReport(report) {
         year: getText('DATYEAR'),
         month: getCodeText('DATMONTH'),
         summary: getCodeText('DATSUMMARY'),
-        content: getText('DATCONTENTTEXT'),
+        content: getCodeText('DATCONTENTTEXT'),
         factor: getCodeText('DATFACTORTEXT'),
         factors: getCodeText('LSTFACTOR DATFACTOR'),
         factorDoubts: getCodeText('LSTFACTORDOUBT DATFACTORDOUBT'),

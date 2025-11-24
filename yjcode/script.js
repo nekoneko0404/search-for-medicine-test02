@@ -1,3 +1,4 @@
+
 let data = [];
 let filteredResults = [];
 let manufacturerLinks = {};
@@ -568,3 +569,4 @@ document.getElementById('yjCodeInput').addEventListener('input', e => { if (e.ta
 document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.addEventListener('change', performSearch));
 
 initializeApp();
+
