@@ -206,7 +206,7 @@ async function loadAndCacheData() {
             });
             return { data: cachedData.data, date: 'キャッシュ' };
         } else {
-            console.log(cachedData ? "キャッシュが古いため、ネットワークから取得します。" : "キャッシュが見つからないため、ネットワークから取得します。");
+            console.log(cachedData ? "キャッシュが古いため、ネットワークから取得します。" : "キャッシュが見つからないため、ネットワークから取得します。" );
             return await fetchExcelData();
         }
     } catch (err) {

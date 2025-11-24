@@ -58,7 +58,7 @@ function hideError() {
 ------------------------------------------------- */
 function buildApiUrl(searchKeyword, filterWord) {
     const params = new URLSearchParams();
-    params.append('count', '100'); // Limit results for performance
+    params.append('count', '50'); // Limit results for performance
     params.append('order', '2'); // Sort by newest first
 
     // Sanitize inputs
@@ -218,7 +218,7 @@ function parseReport(report) {
         year: getText('DATYEAR'),
         month: getCodeText('DATMONTH'),
         summary: getCodeText('DATSUMMARY'),
-        content: getCodeText('DATCONTENTTEXT'),
+        content: getText('DATCONTENTTEXT'),
         factor: getCodeText('DATFACTORTEXT'),
         factors: getCodeText('LSTFACTOR DATFACTOR'),
         factorDoubts: getCodeText('LSTFACTORDOUBT DATFACTORDOUBT'),
