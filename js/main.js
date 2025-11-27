@@ -49,13 +49,11 @@ function initElements() {
     elements.statusStopped = document.getElementById('statusStopped');
     elements.tableContainer = document.getElementById('tableContainer');
     elements.resultTableBody = document.getElementById('resultTableBody');
-    elements.usageGuide = document.getElementById('usage-guide');
     elements.sortStatusIcon = document.getElementById('sort-status-icon');
     elements.sortProductNameIcon = document.getElementById('sort-productName-icon');
     elements.sortIngredientNameIcon = document.getElementById('sort-ingredientName-icon');
     elements.reloadDataBtn = document.getElementById('reload-data');
     elements.notificationArea = document.getElementById('notificationArea');
-    elements.pageFooter = document.getElementById('pageFooter');
     elements.infoContainer = document.getElementById('infoContainer');
 }
 
@@ -72,12 +70,7 @@ function getSearchKeywords(input) {
  * Search and filter data
  */
 function searchData() {
-    if (elements.infoContainer) elements.infoContainer.classList.add('hidden');
     // Footer visibility is handled by CSS animation via body class
-
-
-
-
     if (excelData.length === 0) return;
 
     const drugKeywords = getSearchKeywords(elements.drugName.value);
@@ -103,6 +96,7 @@ function searchData() {
         document.body.classList.remove('search-mode');
         return;
     } else {
+        if (elements.infoContainer) elements.infoContainer.classList.add('hidden');
         elements.tableContainer.classList.remove('hidden');
         document.body.classList.add('search-mode');
     }
@@ -168,7 +162,7 @@ function searchData() {
 function handleIngredientClick(ingredient) {
     elements.drugName.value = '';
     elements.makerName.value = '';
-    const searchIngredient = ingredient.length > 5 ? ingredient.substring(0, 5) : ingredient;
+    const searchIngredient = ingredient;
     elements.ingredientName.value = searchIngredient;
     searchData();
     showMessage(`「${searchIngredient}」で再検索を実行しました。`, 'info');
@@ -210,7 +204,9 @@ function renderTable(data) {
     displayResults.forEach((item, index) => {
         const newRow = elements.resultTableBody.insertRow();
         const rowBgClass = index % 2 === 1 ? 'bg-gray-50' : 'bg-white';
-        newRow.className = `${rowBgClass} transition-colors duration-150 hover:bg-indigo-50 group`;
+        newRow.className = `${rowBgClass} transition-colors duration-150 hover:bg-indigo-50 group fade-in-up`;
+        // First row appears instantly, others staggered slower
+        newRow.style.animationDelay = index === 0 ? '0s' : `${index * 0.05}s`;
 
         // 1. Drug Name Cell
         const drugNameCell = newRow.insertCell(0);

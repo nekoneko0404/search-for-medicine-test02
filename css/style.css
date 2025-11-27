@@ -32,9 +32,25 @@ body {
 
 /* Table Styles */
 .table-container {
-    overflow-x: auto;
+    /* overflow-y: auto; */
+    /* max-height: 70vh; */
+    /* 縦スクロールを有効にし、最大の高さを設定 -> 廃止: 画面全体スクロールへ変更 */
     border-radius: 0.5rem;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+
+.table-container tr {
+    position: relative;
+}
+
+.table-container tr:hover {
+    z-index: 10;
+}
+
+.table-container td {
+    position: relative;
+    /* For tooltip positioning */
 }
 
 /* Mobile Table View */
@@ -88,8 +104,36 @@ body {
     }
 }
 
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .animate-fade-in {
     animation: fadeIn 0.3s ease-out forwards;
+}
+
+.fade-in-up {
+    animation: fade-in-up 0.5s ease-out forwards;
 }
 
 /* Loading Spinner */
@@ -121,11 +165,11 @@ body {
     opacity: 1;
     overflow: hidden;
     transition:
-        max-height 1.5s cubic-bezier(0.4, 0, 0.2, 1),
-        opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1),
-        padding 1.5s cubic-bezier(0.4, 0, 0.2, 1),
-        margin 1.5s cubic-bezier(0.4, 0, 0.2, 1),
-        transform 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+        padding 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+        margin 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+        transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 body.search-mode #mainHeader {
@@ -153,4 +197,50 @@ body.search-mode #mainFooter {
     margin-bottom: 0 !important;
     pointer-events: none;
     border: none;
+}
+
+/* Tooltip/Menu Style */
+.tooltip-menu {
+    position: absolute;
+    z-index: 1000;
+    /* Ensure it's on top */
+}
+
+/* Input field styles */
+input[type="text"],
+input[type="search"],
+textarea {
+    border-width: 1px;
+    border-color: #d1d5db;
+    /* gray-300 */
+    transition:
+        border-color 0.2s ease-in-out,
+        box-shadow 0.2s ease-in-out;
+}
+
+input[type="text"]:hover,
+input[type="search"]:hover,
+textarea:hover {
+    border-color: #a5b4fc !important;
+    /* indigo-300 */
+}
+
+input[type="text"]:focus,
+input[type="search"]:focus,
+textarea:focus {
+    border-color: #818cf8 !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input[type="text"]:hover,
+input[type="search"]:hover {
+    border-color: #818cf8 !important;
+    box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.3) !important;
+}
+
+input[type="text"]:focus,
+input[type="search"]:focus {
+    border-color: #4f46e5 !important;
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.4) !important;
+    outline: none;
 }

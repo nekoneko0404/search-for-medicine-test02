@@ -23,7 +23,7 @@
     <script src="../gtag.js"></script>
 </head>
 
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col md:h-screen md:overflow-hidden">
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
     <header id="mainHeader" class="bg-white shadow-sm sticky top-0 z-30 flex-shrink-0">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -40,7 +40,7 @@
     </header>
 
     <main
-        class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl md:flex md:flex-col md:overflow-hidden">
+        class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl md:flex md:flex-col pb-32 transition-all duration-500">
         <div class="text-center mb-8 flex-shrink-0">
             <h2 class="text-2xl font-bold text-gray-900 mb-2">情報更新日検索</h2>
             <p class="text-gray-500 text-sm">最近更新された医薬品情報を確認できます</p>
@@ -126,20 +126,34 @@
             </div>
         </div>
 
-        <div id="tableContainer"
-            class="table-container bg-white hidden min-h-[280px] md:flex-grow md:overflow-y-auto md:min-h-0">
+        <div id="tableContainer" class="table-container bg-white hidden min-h-[280px] md:flex-grow md:min-h-0">
             <table class="min-w-full divide-y divide-gray-200 table-fixed">
                 <thead class="bg-gray-50">
                     <tr>
                         <th scope="col"
-                            class="px-2 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-[20%]">
-                            品名</th>
+                            class="px-2 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-[10%] group cursor-pointer hover:bg-gray-100 transition-colors">
+                            <div class="flex items-center gap-1" id="sort-yjCode-button">
+                                YJコード <span id="sort-yjCode-icon" class="text-indigo-500">↕</span>
+                            </div>
+                        </th>
                         <th scope="col"
-                            class="px-2 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-[15%]">
-                            成分名</th>
+                            class="px-2 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-[20%] group cursor-pointer hover:bg-gray-100 transition-colors">
+                            <div class="flex items-center gap-1" id="sort-productName-button">
+                                品名 <span id="sort-productName-icon" class="text-indigo-500">↕</span>
+                            </div>
+                        </th>
                         <th scope="col"
-                            class="px-2 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-[10%]">
-                            出荷状況</th>
+                            class="px-2 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-[15%] group cursor-pointer hover:bg-gray-100 transition-colors">
+                            <div class="flex items-center gap-1" id="sort-ingredientName-button">
+                                成分名 <span id="sort-ingredientName-icon" class="text-indigo-500">↕</span>
+                            </div>
+                        </th>
+                        <th scope="col"
+                            class="px-2 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-[10%] group cursor-pointer hover:bg-gray-100 transition-colors">
+                            <div class="flex items-center gap-1" id="sort-status-button">
+                                出荷状況 <span id="sort-status-icon" class="text-indigo-500">↕</span>
+                            </div>
+                        </th>
                         <th scope="col"
                             class="px-2 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-[15%]">
                             制限理由</th>
@@ -165,7 +179,7 @@
     </main>
 
     <!-- Footer -->
-    <footer id="mainFooter" class="bg-white border-t border-gray-200 mt-auto flex-shrink-0">
+    <footer id="mainFooter" class="bg-white border-t border-gray-200 flex-shrink-0 fixed bottom-0 w-full z-20">
         <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col md:flex-row justify-between items-center gap-4">
                 <div class="text-sm text-gray-500">
