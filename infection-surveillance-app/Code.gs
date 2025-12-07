@@ -16,7 +16,9 @@ function doGet(e) {
       'teiten': 'Teiten',
       'ari': 'ARI',
       'trend': 'Trend',
-      'tougai': 'Tougai'
+      'tougai': 'Tougai',
+      'history': 'History', // 新しくhistoryタイプを追加
+      'all': 'All' // 一括取得用
     };
     
     const normalizedKey = sheetNameInput.toLowerCase();
@@ -24,17 +26,28 @@ function doGet(e) {
       throw new Error(`不正なシート名です: ${sheetNameInput}`);
     }
     
+    // historyタイプの場合は、getHistoryData関数を呼び出す
+    if (normalizedKey === 'history') {
+      return ContentService.createTextOutput(getHistoryData())
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // allタイプの場合は、主要データをまとめてJSONで返す
+    if (normalizedKey === 'all') {
+      return ContentService.createTextOutput(JSON.stringify(getAllData_()))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
     const targetSheetName = allowedSheets[normalizedKey];
     
     const folder = getOrCreateFolder_(PARENT_FOLDER_ID, FOLDER_NAME);
     const ss = getOrCreateSpreadsheet_(folder, SPREADSHEET_NAME);
-    let targetSheet = ss.getSheetByName(targetSheetName);
-
-    if (!targetSheet) {
-      throw new Error(`シート「${targetSheetName}」が見つかりません。`);
-    }
-
-    return createCsvOutput_(targetSheet);
+    
+    // 単体取得の場合もキャッシュを活用する
+    const csvContent = getCsvDataWithCache_(ss, targetSheetName);
+    
+    return ContentService.createTextOutput(csvContent)
+      .setMimeType(ContentService.MimeType.CSV);
 
   } catch (err) {
     return ContentService.createTextOutput(`Error: ${err.toString()}`)
@@ -42,11 +55,45 @@ function doGet(e) {
   }
 }
 
-function createCsvOutput_(sheet) {
+function getAllData_() {
+  const folder = getOrCreateFolder_(PARENT_FOLDER_ID, FOLDER_NAME);
+  const ss = getOrCreateSpreadsheet_(folder, SPREADSHEET_NAME);
+  
+  return {
+    Teiten: getCsvDataWithCache_(ss, 'Teiten'),
+    ARI: getCsvDataWithCache_(ss, 'ARI'),
+    Tougai: getCsvDataWithCache_(ss, 'Tougai')
+  };
+}
+
+function getCsvDataWithCache_(ss, sheetName) {
+  // キャッシュキーを作成
+  const cacheKey = "CSV_" + sheetName;
+  const cache = CacheService.getScriptCache();
+  
+  // キャッシュがあればそれを返す
+  const cached = cache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+  
+  // キャッシュがなければシートから読み込む
+  const sheet = ss.getSheetByName(sheetName);
+  if (!sheet) {
+    throw new Error(`シート「${sheetName}」が見つかりません。`);
+  }
+  
   const data = sheet.getDataRange().getValues();
   const csvString = convertToCsv_(data);
-  return ContentService.createTextOutput(csvString)
-    .setMimeType(ContentService.MimeType.CSV);
+  
+  // キャッシュに保存（最大100KBの制限があるため、try-catchで囲む）
+  try {
+    cache.put(cacheKey, csvString, 3600); // 1時間キャッシュ
+  } catch (e) {
+    Logger.log(`Cache put failed for ${sheetName}: ${e.toString()}`);
+  }
+  
+  return csvString;
 }
 
 function convertToCsv_(data) {
@@ -66,6 +113,72 @@ function main() {
     Logger.log("main実行中にエラーが発生しました: " + e.toString());
     cleanUpRetryTriggers_();
   }
+}
+
+/**
+ * Google Driveから過去の感染症データを取得する
+ * @returns {string} 過去データのJSON文字列
+ */
+function getHistoryData() {
+  const result = {
+    data: [],
+    logs: []
+  };
+  result.logs.push("getHistoryData started");
+
+  try {
+    const folder = getOrCreateFolder_(PARENT_FOLDER_ID, FOLDER_NAME);
+    result.logs.push(`Target Folder: ${FOLDER_NAME} (ID: ${folder.getId()})`);
+    
+    const processFiles = (fileIterator, location) => {
+      while (fileIterator.hasNext()) {
+        const file = fileIterator.next();
+        const fileName = file.getName();
+        
+        if (fileName.toLowerCase().includes('teiten-tougai')) {
+          try {
+            let year = 0;
+            const yearMatch = fileName.match(/(20\d{2})/);
+            if (yearMatch) year = parseInt(yearMatch[1], 10);
+            
+            if (year > 0) {
+              const csvContent = file.getBlob().getDataAsString("Shift_JIS");
+              result.data.push({
+                year: year,
+                fileName: fileName,
+                content: csvContent
+              });
+              result.logs.push(`Matched & Read in ${location}: ${fileName} (Year: ${year})`);
+            } else {
+              result.logs.push(`Skipped in ${location} (No year): ${fileName}`);
+            }
+          } catch (e) {
+            result.logs.push(`Error reading ${fileName} in ${location}: ${e.toString()}`);
+          }
+        }
+      }
+    };
+
+    // 1. 親フォルダ直下のファイルを検索
+    processFiles(folder.getFiles(), "Root");
+
+    // 2. 「過去週報」サブフォルダ内のファイルを検索
+    const subFolders = folder.getFoldersByName("過去週報");
+    if (subFolders.hasNext()) {
+      const subFolder = subFolders.next();
+      result.logs.push(`Subfolder Found: ${subFolder.getName()} (ID: ${subFolder.getId()})`);
+      processFiles(subFolder.getFiles(), "Subfolder");
+    } else {
+      result.logs.push("Subfolder '過去週報' not found.");
+    }
+
+    result.data.sort((a, b) => b.year - a.year);
+    result.logs.push(`Total history files loaded: ${result.data.length}`);
+  } catch (e) {
+    result.logs.push(`Fatal Error: ${e.toString()}`);
+  }
+  
+  return JSON.stringify(result);
 }
 
 function updateData_() {
@@ -98,6 +211,27 @@ function updateData_() {
     writeCsvToSheet_(ss, 'Teiten', csvData.Teiten);
     writeCsvToSheet_(ss, 'Tougai', csvData.Tougai);
     writeCsvToSheet_(ss, 'ARI', csvData.ARI);
+
+    // 履歴用CSVファイルを「過去週報」フォルダに保存
+    const subFolderName = "過去週報";
+    let historyFolder;
+    const subFolders = folder.getFoldersByName(subFolderName);
+    if (subFolders.hasNext()) {
+      historyFolder = subFolders.next();
+    } else {
+      historyFolder = folder.createFolder(subFolderName);
+    }
+
+    const fileName = `${year}-${weekStr}-teiten-tougai.csv`;
+    const existingFiles = historyFolder.getFilesByName(fileName);
+    
+    // 重複チェック: すでに存在する場合は保存しない
+    if (existingFiles.hasNext()) {
+      Logger.log(`File ${fileName} already exists in ${subFolderName}. Skipping save.`);
+    } else {
+      historyFolder.createFile(fileName, csvData.Tougai, MimeType.CSV);
+      Logger.log(`Saved history CSV to Drive (${subFolderName}): ${fileName}`);
+    }
 
     Logger.log("データ更新処理が正常に終了しました。");
     cleanUpRetryTriggers_();
