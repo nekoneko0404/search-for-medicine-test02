@@ -1,5 +1,5 @@
 /** 
- * Hiyari Hat App Main Logic (test03)
+ * Hiyari Hat App Main Logic (test02)
  * - Optimized API queries searching both DATMEDNAME and DATGENERIC
  * - Compact single-row UI with auto-search on Enter
  * - 3-column grid layout for wide screens
