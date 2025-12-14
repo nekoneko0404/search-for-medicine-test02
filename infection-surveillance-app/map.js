@@ -158,13 +158,13 @@ function getColorForValue(value, disease) {
     return "#2ecc71"; // Normal Green
 }
 
-function showRegionDetails(regionId, regionLabel, prefectures, data, disease) {
+function showRegionDetails(regionId, regionLabel, prefectures, data, disease, highlightPrefecture = null) {
     const panel = document.getElementById('detail-panel');
     const title = document.getElementById('region-title');
     const content = document.getElementById('region-content');
 
     title.textContent = `${regionLabel} 詳細 (${getDiseaseName(disease)})`;
-    content.innerHTML = ''; // Clear content
+    content.replaceChildren(); // Clear content safely
 
     const list = document.createElement('div');
     list.className = 'prefecture-list';
@@ -184,6 +184,9 @@ function showRegionDetails(regionId, regionLabel, prefectures, data, disease) {
     sortedPrefs.forEach(item => {
         const row = document.createElement('div');
         row.className = 'pref-row';
+        if (highlightPrefecture && item.name === highlightPrefecture) {
+            row.classList.add('selected');
+        }
 
         // Determine status class
         let statusClass = 'normal';
@@ -223,27 +226,10 @@ function showRegionDetails(regionId, regionLabel, prefectures, data, disease) {
     });
 
     content.appendChild(list);
-
-    // Add some CSS for the list dynamically or ensure it's in style.css
-    // For now, let's assume basic styles are handled or add inline for safety
-    const style = document.createElement('style');
-    style.textContent = `
-        .prefecture-list { display: flex; flex-direction: column; gap: 10px; }
-        .pref-row { display: flex; align-items: center; gap: 10px; }
-        .pref-name { width: 80px; font-weight: bold; }
-        .pref-bar-container { flex-grow: 1; background: #eee; height: 10px; border-radius: 5px; overflow: hidden; }
-        .pref-bar { height: 100%; transition: width 0.5s ease; }
-        .pref-bar.alert { background: #e74c3c; }
-        .pref-bar.warning { background: #f39c12; }
-        .pref-bar.caution { background: #f1c40f; }
-        .pref-bar.normal { background: #2ecc71; }
-        .pref-value { width: 50px; text-align: right; font-family: 'Inter', sans-serif; }
-    `;
-    content.appendChild(style);
 }
 
 // 外部から詳細パネルを更新するための関数
-window.updateDetailPanel = function (regionId, data, disease) {
+window.updateDetailPanel = function (regionId, data, disease, highlightPrefecture = null) {
     // layoutデータなどが必要だが、ここでは簡易的にREGIONSから復元
     const prefectures = REGIONS[regionId];
     if (!prefectures) return;
@@ -259,7 +245,7 @@ window.updateDetailPanel = function (regionId, data, disease) {
     // data構造の正規化: main.jsからの呼び出しでは cachedData 全体が渡されるため、currentを取り出す
     const currentData = data.current ? data.current : data;
 
-    showRegionDetails(regionId, label, prefectures, currentData, disease);
+    showRegionDetails(regionId, label, prefectures, currentData, disease, highlightPrefecture);
 };
 
 window.getRegionIdByPrefecture = function (prefectureName) {

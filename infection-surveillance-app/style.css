@@ -324,9 +324,14 @@ body {
     flex-direction: column;
     height: 350px;
     /* グラフを表示するのに十分な高さ */
-    cursor: pointer;
+    cursor: default;
     border: 1px solid rgba(0, 0, 0, 0.05);
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    overflow: hidden;
+}
+
+.disease-card.placeholder {
+    visibility: hidden;
 }
 
 .disease-card:hover {
@@ -334,11 +339,129 @@ body {
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
 }
 
-.disease-card h4 {
+/* Expanded Card Styles */
+.disease-card.expanded {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90vw;
+    max-width: 900px;
+    /* Approx 3 cards width or comfortably large */
+    height: 80vh;
+    max-height: 800px;
+    /* Approx 2 cards height */
+    z-index: 1001;
+    cursor: zoom-out;
+    /* Indicate click to close */
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+    background-color: #fff;
+    /* Ensure opaque background */
+    padding: 30px;
+    /* Increase padding for better view */
+    overflow: hidden;
+    /* Prevent scrollbar on body if content is large */
+}
+
+/* Ensure canvas takes full space in expanded mode */
+.disease-card.expanded .chart-container {
+    height: calc(100% - 40px);
+    /* Subtract header height */
+}
+
+/* Backdrop */
+.card-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    backdrop-filter: blur(2px);
+}
+
+.card-backdrop.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 10px;
+}
+
+.disease-card h4 {
+    margin-bottom: 0;
     color: var(--primary-color);
     font-size: 1.1rem;
-    text-align: center;
+    text-align: left;
+    flex-grow: 1;
+}
+
+.expand-action-btn {
+    background: none;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    cursor: pointer;
+    padding: 6px;
+    color: var(--text-sub);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 10px;
+}
+
+.expand-action-btn:hover {
+    color: var(--primary-color);
+    background-color: #f8f9fa;
+    border-color: #ddd;
+}
+
+.expand-action-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+.close-expanded-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    color: #555;
+    z-index: 1002;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s;
+}
+
+.close-expanded-btn:hover {
+    background-color: #f0f0f0;
+    color: #333;
+    transform: scale(1.05);
+}
+
+.disease-card.expanded .close-expanded-btn {
+    display: flex;
+}
+
+.disease-card.expanded .expand-action-btn {
+    display: none;
 }
 
 .disease-card .chart-container {
@@ -346,9 +469,17 @@ body {
     position: relative;
 }
 
+.chart-container-no-data {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    color: #999;
+}
+
 .disease-card canvas {
-    width: 100% !important;
-    height: 100% !important;
+    width: 100%;
+    height: 100%;
 }
 
 .left-panel {
@@ -547,9 +678,19 @@ body {
     display: block;
 }
 
+.no-data-message {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+}
+
 /* Utilities */
 .hidden {
     display: none !important;
+}
+
+.position-relative {
+    position: relative;
 }
 
 /* --- Skeleton Loading Styles --- */
@@ -593,6 +734,41 @@ body {
     left: auto;
 }
 
+
+/* Chart Loading Specific Skeleton */
+.chart-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.8);
+    /* 白っぽい半透明の背景 */
+    border-radius: 8px;
+    z-index: 10;
+}
+
+.chart-loading-skeleton {
+    width: 90%;
+    height: 80%;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading-shimmer 1.5s infinite;
+    border-radius: 4px;
+}
+
+@keyframes loading-shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
 
 /* Skeleton Loading Animation */
 @keyframes shimmer {
@@ -683,7 +859,7 @@ body {
 
 /* Responsive */
 @media (max-width: 768px) {
-    .dashboard-content {
+    #main-view {
         grid-template-columns: 1fr;
     }
 
@@ -698,6 +874,30 @@ body {
     .skeleton-card-wrapper {
         flex-direction: column;
     }
+
+    .disease-card.expanded {
+        position: fixed;
+        /* fix for mobile layout */
+        width: 100%;
+        /* use 100% instead of 100vw to avoid scrollbar issues */
+        height: 100%;
+        /* use 100% instead of 100vh */
+        top: 0;
+        left: 0;
+        transform: none;
+        border-radius: 0;
+        padding: 40px 10px 10px;
+        overflow: hidden;
+        /* Hide overflow to keep chart contained */
+        z-index: 10000;
+        /* Ensure it's on top */
+    }
+
+    .other-diseases-grid {
+        grid-template-columns: 1fr;
+    }
+
+
 }
 
 /* Prefecture Chart Container (Swapped with Map) */
@@ -745,3 +945,128 @@ body {
     /* Flexアイテムの最小サイズ制約を解除して縮小可能にする */
     position: relative;
 }
+
+.pref-chart-message-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+.pref-chart-message {
+    color: #666;
+    font-size: 1rem;
+}
+
+.link-style {
+    color: inherit;
+    text-decoration: underline;
+}
+
+/* Styles for Prefecture Detail List (from map.js) */
+.prefecture-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.pref-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 2px 5px; /* Add padding for highlighting */
+    transition: background-color 0.2s;
+}
+.pref-row.selected {
+    background-color: #e3f2fd; /* Light blue highlight */
+    border-radius: 4px;
+    font-weight: bold;
+}
+.pref-name {
+    width: 80px;
+    font-weight: bold;
+    cursor: pointer;
+    text-decoration: underline;
+}
+.pref-name:hover {
+    color: var(--primary-color);
+}
+.pref-bar-container {
+    flex-grow: 1;
+    background: #eee;
+    height: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+}
+.pref-bar {
+    height: 100%;
+    transition: width 0.5s ease;
+}
+.pref-bar.alert {
+    background: #e74c3c;
+}
+.pref-bar.warning {
+    background: #f39c12;
+}
+.pref-bar.caution {
+    background: #f1c40f;
+}
+.pref-bar.normal {
+    background: #2ecc71;
+}
+.pref-value {
+    width: 50px;
+    text-align: right;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Global Loading Overlay */
+body.loading::before {
+    content: 'Loading...'; /* Or you could use a more complex spinner animation */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--primary-color);
+        z-index: 9999; /* Ensure it's on top of everything */
+    }
+    
+    /* Added for CSP compliance to replace inline styles */
+    .modal-expanded {
+        position: fixed;
+        z-index: 2000;
+    }
+    
+    .modal-close-button {
+        display: flex;
+    }
+    
+    .pref-chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    
+    .pref-chart-title {
+        margin: 0;
+        font-size: 1.2rem;
+        color: var(--text-main);
+    }
+    
+    .no-data-message-inline {
+        text-align: center;
+        padding: 2rem;
+        color: #666;
+    }
+    
+    .canvas-reset {
+        width: 100%;
+        height: 100%;
+    }
+    
