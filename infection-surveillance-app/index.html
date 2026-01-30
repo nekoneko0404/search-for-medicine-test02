@@ -7,7 +7,7 @@
     <title>Test 感染症サーベイランス | Infection Surveillance</title>
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self';
-        script-src 'self' 'unsafe-eval' https://cdn.jsdelivr.net https://www.googletagmanager.com https://cdnjs.cloudflare.com;
+        script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net https://www.googletagmanager.com https://cdnjs.cloudflare.com;
         style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com;
         font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
         img-src 'self' data: https://www.googletagmanager.com;
@@ -186,6 +186,24 @@
     <div id="card-backdrop" class="card-backdrop"></div>
     <script src="map.js"></script>
     <script src="main.js?v=20251213-03"></script>
+    <div class="migration-banner">
+        <div class="migration-content">
+            <i class="fas fa-info-circle migration-icon"></i>
+            <div class="migration-text">
+                <p class="migration-message">このページの機能更新は終了しました。<br>
+                    より快適に使用できるリニューアルページにブックマークを変更してください。</p>
+                <a href="https://search-for-medicine.pages.dev/" target="_blank" class="migration-link">
+                    新しいページへ移動 <i class="fas fa-external-link-alt"></i>
+                </a>
+            </div>
+            <button class="migration-close-btn" aria-label="閉じる">×</button>
+        </div>
+    </div>
+    <script>
+        document.querySelector('.migration-close-btn').addEventListener('click', function () {
+            document.querySelector('.migration-banner').style.display = 'none';
+        });
+    </script>
 </body>
 
 </html>

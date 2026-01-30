@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Test 医薬品出荷状況検索 | Kusuri Compass</title>
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://unpkg.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com; img-src 'self' data:; connect-src 'self' https://docs.google.com https://*.googleusercontent.com https://hiyari-proxy-708146219355.asia-east1.run.app https://cdn.jsdelivr.net https://www.google-analytics.com https://analytics.google.com; object-src 'none'; base-uri 'self'; form-action 'self';">
+        content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com; img-src 'self' data:; connect-src 'self' https://docs.google.com https://*.googleusercontent.com https://hiyari-proxy-708146219355.asia-east1.run.app https://cdn.jsdelivr.net https://www.google-analytics.com https://analytics.google.com; object-src 'none'; base-uri 'self'; form-action 'self';">
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-VXSZGE4HP7"></script>
     <script async src="gtag.js"></script>
@@ -223,6 +223,24 @@
     <script type="module" src="js/main.js"></script>
     <!-- Typing Animation Script -->
     <script type="module" src="js/typing-init.js"></script>
+    <div class="migration-banner">
+        <div class="migration-content">
+            <i class="fas fa-info-circle migration-icon"></i>
+            <div class="migration-text">
+                <p class="migration-message">このページの機能更新は終了しました。<br>
+                    より快適に使用できるリニューアルページにブックマークを変更してください。</p>
+                <a href="https://search-for-medicine.pages.dev/" target="_blank" class="migration-link">
+                    新しいページへ移動 <i class="fas fa-external-link-alt"></i>
+                </a>
+            </div>
+            <button class="migration-close-btn" aria-label="閉じる">×</button>
+        </div>
+    </div>
+    <script>
+        document.querySelector('.migration-close-btn').addEventListener('click', function () {
+            document.querySelector('.migration-banner').style.display = 'none';
+        });
+    </script>
 </body>
 
 </html>

@@ -794,6 +794,126 @@ body {
     /* Hide skeletons by default */
 }
 
+
+/* Migration Banner */
+.migration-banner {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    background-color: #fff3cd;
+    border-left: 6px solid #ff9800;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    overflow: hidden;
+    animation: slideInRight 0.5s ease-out forwards;
+    max-width: 400px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+}
+
+.migration-content {
+    display: flex;
+    align-items: flex-start;
+    padding: 15px 20px;
+}
+
+.migration-icon {
+    color: #ff9800;
+    font-size: 24px;
+    margin-right: 15px;
+    margin-top: 2px;
+}
+
+.migration-text {
+    flex: 1;
+}
+
+.migration-message {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #856404;
+    font-weight: bold;
+}
+
+.migration-link {
+    display: inline-block;
+    background-color: #ff9800;
+    color: white;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    transition: background-color 0.3s;
+}
+
+.migration-link:hover {
+    background-color: #e68900;
+    color: white;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .migration-banner {
+        top: auto;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        width: 100%;
+        max-width: 100%;
+        border-radius: 0;
+        border-left: none;
+        border-top: 4px solid #ff9800;
+        animation: slideInUp 0.5s ease-out forwards;
+    }
+
+    .migration-content {
+        padding: 15px;
+    }
+}
+
+.migration-close-btn {
+    background: none;
+    border: none;
+    color: #ff9800;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0 0 0 15px;
+    line-height: 1;
+    align-self: flex-start;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.migration-close-btn:hover {
+    opacity: 1;
+}
+
 .skeleton-card-wrapper {
     display: none;
     /* Hide wrapper by default */
@@ -969,27 +1089,34 @@ body {
     flex-direction: column;
     gap: 10px;
 }
+
 .pref-row {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 2px 5px; /* Add padding for highlighting */
+    padding: 2px 5px;
+    /* Add padding for highlighting */
     transition: background-color 0.2s;
 }
+
 .pref-row.selected {
-    background-color: #e3f2fd; /* Light blue highlight */
+    background-color: #e3f2fd;
+    /* Light blue highlight */
     border-radius: 4px;
     font-weight: bold;
 }
+
 .pref-name {
     width: 80px;
     font-weight: bold;
     cursor: pointer;
     text-decoration: underline;
 }
+
 .pref-name:hover {
     color: var(--primary-color);
 }
+
 .pref-bar-container {
     flex-grow: 1;
     background: #eee;
@@ -997,22 +1124,28 @@ body {
     border-radius: 5px;
     overflow: hidden;
 }
+
 .pref-bar {
     height: 100%;
     transition: width 0.5s ease;
 }
+
 .pref-bar.alert {
     background: #e74c3c;
 }
+
 .pref-bar.warning {
     background: #f39c12;
 }
+
 .pref-bar.caution {
     background: #f1c40f;
 }
+
 .pref-bar.normal {
     background: #2ecc71;
 }
+
 .pref-value {
     width: 50px;
     text-align: right;
@@ -1021,52 +1154,54 @@ body {
 
 /* Global Loading Overlay */
 body.loading::before {
-    content: 'Loading...'; /* Or you could use a more complex spinner animation */
+    content: 'Loading...';
+    /* Or you could use a more complex spinner animation */
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
+    background-color: rgba(255, 255, 255, 0.8);
+    /* Semi-transparent white background */
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.5rem;
     color: var(--primary-color);
-        z-index: 9999; /* Ensure it's on top of everything */
-    }
-    
-    /* Added for CSP compliance to replace inline styles */
-    .modal-expanded {
-        position: fixed;
-        z-index: 2000;
-    }
-    
-    .modal-close-button {
-        display: flex;
-    }
-    
-    .pref-chart-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-    }
-    
-    .pref-chart-title {
-        margin: 0;
-        font-size: 1.2rem;
-        color: var(--text-main);
-    }
-    
-    .no-data-message-inline {
-        text-align: center;
-        padding: 2rem;
-        color: #666;
-    }
-    
-    .canvas-reset {
-        width: 100%;
-        height: 100%;
-    }
-    
+    z-index: 9999;
+    /* Ensure it's on top of everything */
+}
+
+/* Added for CSP compliance to replace inline styles */
+.modal-expanded {
+    position: fixed;
+    z-index: 2000;
+}
+
+.modal-close-button {
+    display: flex;
+}
+
+.pref-chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.pref-chart-title {
+    margin: 0;
+    font-size: 1.2rem;
+    color: var(--text-main);
+}
+
+.no-data-message-inline {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+}
+
+.canvas-reset {
+    width: 100%;
+    height: 100%;
+}

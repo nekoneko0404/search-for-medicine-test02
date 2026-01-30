@@ -6,7 +6,7 @@
     <script async src="gtag.js"></script>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self' https://www.googletagmanager.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://fonts.googleapis.com 'unsafe-inline'; img-src 'self' data: https://www.googletagmanager.com; font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; connect-src 'self' https://www.google-analytics.com https://cdn.jsdelivr.net https://script.google.com https://script.googleusercontent.com https://docs.google.com https://cdnjs.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self';">
+        content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://fonts.googleapis.com 'unsafe-inline'; img-src 'self' data: https://www.googletagmanager.com; font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; connect-src 'self' https://www.google-analytics.com https://cdn.jsdelivr.net https://script.google.com https://script.googleusercontent.com https://docs.google.com https://cdnjs.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self';">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Test 機能選択メニュー - 医薬品情報検索システム</title>
     <link rel="icon" href="favicon.ico">
@@ -27,20 +27,7 @@
 
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
-    <!-- Migration Notification -->
-    <div class="bg-red-600 text-white px-4 py-3 shadow-md relative z-50">
-        <div
-            class="container mx-auto max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
-            <p class="font-bold text-sm sm:text-base">
-                <i class="fas fa-bullhorn mr-2"></i>
-                【快適になりました】<BR>サイトをリニューアルし、別ドメインへ移転しました。このページは更新されません。<BR>小児用医薬品の飲み合わせ、花粉症情報など新しい機能を追加しています。<BR>移転後のメニューページをブックマークしてください。
-            </p>
-            <a href="https://search-for-medicine.pages.dev/"
-                class="bg-white text-red-600 px-4 py-1.5 rounded-full font-bold text-sm hover:bg-red-50 transition-colors whitespace-nowrap shadow-sm">
-                新しいKusuri Compassへ <i class="fas fa-arrow-right ml-1"></i>
-            </a>
-        </div>
-    </div>
+
 
     <!-- Header -->
     <header id="mainHeader" class="bg-white shadow-sm sticky top-0 z-30 flex-shrink-0">
@@ -128,6 +115,24 @@
     </footer>
 
     <script type="module" src="js/index.js"></script>
+    <div class="migration-banner">
+        <div class="migration-content">
+            <i class="fas fa-info-circle migration-icon"></i>
+            <div class="migration-text">
+                <p class="migration-message">このページの機能更新は終了しました。<br>
+                    より快適に使用できるリニューアルページにブックマークを変更してください。</p>
+                <a href="https://search-for-medicine.pages.dev/" target="_blank" class="migration-link">
+                    新しいページへ移動 <i class="fas fa-external-link-alt"></i>
+                </a>
+            </div>
+            <button class="migration-close-btn" aria-label="閉じる">×</button>
+        </div>
+    </div>
+    <script>
+        document.querySelector('.migration-close-btn').addEventListener('click', function () {
+            document.querySelector('.migration-banner').style.display = 'none';
+        });
+    </script>
 </body>
 
 </html>
