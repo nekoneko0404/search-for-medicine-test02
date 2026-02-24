@@ -3,11 +3,13 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0; url=https://search-for-medicine.pages.dev/">
+    <meta http-equiv="refresh" content="5; url=https://search-for-medicine.pages.dev/">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ページ移動のお知らせ - Kusuri Compass</title>
     <script>
-        window.location.replace("https://search-for-medicine.pages.dev/");
+        setTimeout(function () {
+            window.location.replace("https://search-for-medicine.pages.dev/");
+        }, 5000);
     </script>
     <style>
         body {
@@ -26,15 +28,28 @@
         a:hover {
             text-decoration: underline;
         }
+
+        .bookmark-notice {
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            border-radius: 4px;
+            display: inline-block;
+            font-weight: bold;
+        }
     </style>
 </head>
 
 <body>
     <h2>Kusuri Compass は新しくなりました</h2>
-    <p>自動的に新しいページへ移動します。</p>
+    <p>5秒後に自動的に新しいページへ移動します。</p>
     <p>移動しない場合は、以下のリンクをクリックしてください：</p>
     <p><a href="https://search-for-medicine.pages.dev/">https://search-for-medicine.pages.dev/</a></p>
-    <p style="margin-top:2rem; font-size:0.8rem; color:#666;">ブックマークの変更をお願いいたします。</p>
+    <div class="bookmark-notice">
+        ⚠️ お手数ですが、ブックマークの変更をお願いいたします。
+    </div>
 </body>
 
 </html>
